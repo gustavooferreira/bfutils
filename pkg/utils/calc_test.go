@@ -30,7 +30,7 @@ func TestCalcPercOpenBack(t *testing.T) {
 	for i, tc := range paramsTC {
 		t.Run(fmt.Sprintf("Test %d", i+1), func(t *testing.T) {
 
-			result := CalcPercOpenBack(tc.inOddBack, tc.inOddLay)
+			result := PercPLOpenBack(tc.inOddBack, tc.inOddLay)
 
 			if !floatEqual(result, tc.out, 0.001) {
 				t.Fatalf("Got '%.2f', wanted '%.2f'", result, tc.out)
@@ -54,7 +54,7 @@ func TestCalcPercOpenLay(t *testing.T) {
 	for i, tc := range paramsTC {
 		t.Run(fmt.Sprintf("Test %d", i+1), func(t *testing.T) {
 
-			result := CalcPercOpenLay(tc.inOddLay, tc.inOddBack)
+			result := PercPLOpenLay(tc.inOddLay, tc.inOddBack)
 
 			if !floatEqual(result, tc.out, 0.001) {
 				t.Fatalf("Got '%.2f', wanted '%.2f'", result, tc.out)
