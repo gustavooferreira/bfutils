@@ -120,3 +120,5 @@ func OddCeil(odd float64) float64 {
 //             index = key
 
 //     return Odds.ODDS[index]
+
+// Get ticks difference between two odds [FUNC]

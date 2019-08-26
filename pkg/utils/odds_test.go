@@ -5,6 +5,14 @@ import (
 	"testing"
 )
 
+func TestOddsSize(t *testing.T) {
+	OddsLen := len(Odds)
+
+	if OddsLen != 350 {
+		t.Fatalf("Got '%d' , wanted '%d'", OddsLen, 350)
+	}
+}
+
 func TestOddExists(t *testing.T) {
 	oddsTC := []struct {
 		in  int
