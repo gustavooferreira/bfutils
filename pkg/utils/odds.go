@@ -1,5 +1,6 @@
 package utils
 
+// Odds is an array of float64s holding the value of all allowed odds.
 var Odds = []float64{
 	1.01, 1.02, 1.03, 1.04, 1.05, 1.06, 1.07, 1.08, 1.09, 1.10,
 	1.11, 1.12, 1.13, 1.14, 1.15, 1.16, 1.17, 1.18, 1.19, 1.20,
@@ -47,6 +48,7 @@ var OddsRange = []map[string]float64{
 	map[string]float64{"begin": 110, "end": 1000, "var": 10, "ticks": 90},
 }
 
+// OddFloor returns the same odd if they match or the very next odd below.
 func OddFloor(odd float64) float64 {
 	// Boundaries
 	if odd >= 1000 {
@@ -65,6 +67,7 @@ func OddFloor(odd float64) float64 {
 	return 0
 }
 
+// OddCeil returns the same odd if they match or the very next odd above.
 func OddCeil(odd float64) float64 {
 	// Boundaries
 	if odd >= 1000 {

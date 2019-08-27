@@ -8,6 +8,9 @@ import (
 	"strings"
 )
 
+// DistanceToFurlongs returns the number of furlongs in a race.
+// It makes it easier for distance comparisons
+// Example: 1m7f => 15 furlongs
 func DistanceToFurlongs(distance string) (uint, error) {
 
 	// # Use regex to validate input.
@@ -43,6 +46,8 @@ func DistanceToFurlongs(distance string) (uint, error) {
 	return uint(8*m + f), nil
 }
 
+// DistanceFromFurlongs returns the string representation of the distance.
+// Example: 15 furlongs => 1m7f
 func DistanceFromFurlongs(distance uint) string {
 
 	m := distance / 8
@@ -61,8 +66,8 @@ func DistanceFromFurlongs(distance uint) string {
 	return result
 }
 
-// getNameAndDistance returns the name of the race, the distance
-func GetNameAndDistance(marketName string) (name string, distance string) {
+// GetClassificationAndDistance returns the classification of the race and the distance, given the name of the race (as returned by the betfair API).
+func GetClassificationAndDistance(marketName string) (name string, distance string) {
 	words := strings.Fields(marketName)
 
 	// check length as well
