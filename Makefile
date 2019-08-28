@@ -15,7 +15,7 @@ coverage:
 
 .PHONY: lint
 lint:
-	@go vet
+	@go vet ./...
 
 
 .PHONY: docs-server
