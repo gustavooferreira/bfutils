@@ -10,7 +10,7 @@ test:
 
 .PHONY: coverage
 coverage:
-	@go test -cover
+	@go test -cover ./...
 
 
 .PHONY: lint
