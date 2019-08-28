@@ -5,7 +5,7 @@ build:
 
 .PHONY: test
 test:
-	@go test -v github.com/gustavooferreira/bfutils/pkg/utils
+	@gotest -v ./...
 
 
 .PHONY: coverage
