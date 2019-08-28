@@ -1,6 +1,6 @@
 .PHONY: build
 build:
-	@go build github.com/gustavooferreira/bfutils/pkg/utils
+	@go build ./...
 
 
 .PHONY: test
