@@ -6,10 +6,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestGetNameAndDistance(t *testing.T) {
+func TestGetClassificationAndDistance(t *testing.T) {
 
 	marketname := "1m3f Mdn Stks"
-	name, dist := GetNameAndDistance(marketname)
+	name, dist := GetClassificationAndDistance(marketname)
 
 	if name != "Mdn Stks" || dist != "1m3f" {
 		t.Errorf("input: %q - output: %q, %q", marketname, name, dist)
