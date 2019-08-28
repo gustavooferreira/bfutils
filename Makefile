@@ -41,7 +41,8 @@ find_xxx:
 
 .PHONY: clean
 clean:
-	# @rm -f file
+	@# @rm -f file
+	@echo "Removing files"
 
 
 .PHONY: count
