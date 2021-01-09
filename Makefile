@@ -5,12 +5,18 @@ build:
 
 .PHONY: test
 test:
-	@gotest -v ./...
+	@go test ./...
 
 
 .PHONY: coverage
 coverage:
 	@go test -cover ./...
+
+
+.PHONY: coverage-report
+coverage-report:
+	@go test -coverprofile=/tmp/coverage.txt ./...
+	@go tool cover -html=/tmp/coverage.txt
 
 
 .PHONY: lint
@@ -20,8 +26,8 @@ lint:
 
 .PHONY: docs-server
 docs-server:
-	@echo "Documentation:"
-	@bash scripts/run-docs-server.sh
+	@echo "Documentation @ http://127.0.0.1:6060"
+	@godoc -http=:6060
 
 
 .PHONY: find_todo
