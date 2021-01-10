@@ -190,7 +190,7 @@ func OddsTicksDiff(roundType RoundType, odd1 float64, odd2 float64) (int, error)
 		return 0, err2
 	}
 
-	return index2 - index1, nil
+	return int(math.Abs(float64(index2 - index1))), nil
 }
 
 // OddWithinBoundaries checks if odd is within trading range

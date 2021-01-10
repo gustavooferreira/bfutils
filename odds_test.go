@@ -227,7 +227,7 @@ func TestOddsTicksDiff(t *testing.T) {
 
 		"odds[1.01, 3] tick diff": {roundType: bfutils.RoundType_Round, odd1: 1.01, odd2: 3, expectedDiff: 149},
 		"odds[4, 4.5] tick diff":  {roundType: bfutils.RoundType_Ceil, odd1: 4, odd2: 4.5, expectedDiff: 5},
-		"odds[10, 5] tick diff":   {roundType: bfutils.RoundType_Floor, odd1: 10, odd2: 5, expectedDiff: -30},
+		"odds[10, 5] tick diff":   {roundType: bfutils.RoundType_Floor, odd1: 10, odd2: 5, expectedDiff: 30},
 	}
 
 	for name, test := range tests {
