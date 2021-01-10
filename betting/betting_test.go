@@ -1,6 +1,7 @@
 package betting_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/gustavooferreira/bfutils/betting"
@@ -134,74 +135,91 @@ func TestCalcFreeBetAmount(t *testing.T) {
 
 func TestGreenBookSelection(t *testing.T) {
 	tests := map[string]struct {
-		bets           []betting.Bet
-		currentBackOdd float64
-		currentLayOdd  float64
+		selection      betting.Selection
 		expectedBet    betting.Bet
-		expectedPL     float64
+		expectedWinPL  float64
+		expectedLosePL float64
 		expectedErr    bool
 	}{
-		"calculate greenbook 1": {bets: []betting.Bet{}, currentBackOdd: 2, currentLayOdd: 2.1, expectedErr: true},
+		"calculate greenbook 0": {expectedErr: true},
+		"calculate greenbook 1": {selection: betting.Selection{
+			Bets: []betting.Bet{},
+		}, expectedErr: true},
 		"calculate greenbook 2": {
-			bets: []betting.Bet{
-				{Type: betting.BetType_Back, Odd: 4, Amount: 10},
-				{Type: betting.BetType_Lay, Odd: 2, Amount: 5},
+			selection: betting.Selection{
+				Bets: []betting.Bet{
+					{Type: betting.BetType_Back, Odd: 4, Amount: 10},
+					{Type: betting.BetType_Lay, Odd: 2, Amount: 5},
+				},
+				CurrentBackOdd: 2,
+				CurrentLayOdd:  2.1,
 			},
-			currentBackOdd: 2,
-			currentLayOdd:  2.1,
 			expectedBet:    betting.Bet{Type: betting.BetType_Lay, Odd: 2.1, Amount: 14.29},
-			expectedPL:     9.29,
+			expectedWinPL:  9.29,
+			expectedLosePL: 9.29,
 		},
 		"calculate greenbook 3": {
-			bets: []betting.Bet{
-				{Type: betting.BetType_Back, Odd: 3, Amount: 5},
+			selection: betting.Selection{
+				Bets: []betting.Bet{
+					{Type: betting.BetType_Back, Odd: 3, Amount: 5},
+				},
+				CurrentBackOdd: 2,
+				CurrentLayOdd:  2.1,
 			},
-			currentBackOdd: 2,
-			currentLayOdd:  2.1,
 			expectedBet:    betting.Bet{Type: betting.BetType_Lay, Odd: 2.1, Amount: 7.14},
-			expectedPL:     2.15,
+			expectedWinPL:  2.15,
+			expectedLosePL: 2.15,
 		},
 		"calculate greenbook 4": {
-			bets: []betting.Bet{
-				{Type: betting.BetType_Lay, Odd: 3, Amount: 5},
+			selection: betting.Selection{
+				Bets: []betting.Bet{
+					{Type: betting.BetType_Lay, Odd: 3, Amount: 5},
+				},
+				CurrentBackOdd: 4,
+				CurrentLayOdd:  4.2,
 			},
-			currentBackOdd: 4,
-			currentLayOdd:  4.2,
 			expectedBet:    betting.Bet{Type: betting.BetType_Back, Odd: 4, Amount: 3.75},
-			expectedPL:     1.25,
+			expectedWinPL:  1.25,
+			expectedLosePL: 1.25,
 		},
 		"calculate greenbook 5": {
-			bets: []betting.Bet{
-				{Type: betting.BetType_Back, Odd: 4, Amount: 5},
-				{Type: betting.BetType_Lay, Odd: 3, Amount: 5},
+			selection: betting.Selection{
+				Bets: []betting.Bet{
+					{Type: betting.BetType_Back, Odd: 4, Amount: 5},
+					{Type: betting.BetType_Lay, Odd: 3, Amount: 5},
+				},
+				CurrentBackOdd: 3.1,
+				CurrentLayOdd:  3,
 			},
-			currentBackOdd: 3.1,
-			currentLayOdd:  3,
 			expectedBet:    betting.Bet{Type: betting.BetType_Lay, Odd: 3, Amount: 1.67},
-			expectedPL:     1.67,
+			expectedWinPL:  1.67,
+			expectedLosePL: 1.67,
 		},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			var errBool bool
-			bet, pl, err := betting.GreenBookSelection(test.bets, test.currentBackOdd, test.currentLayOdd)
+			var errMsg string
+			bet, err := betting.GreenBookSelection(test.selection)
 			if err != nil {
 				errBool = true
+				errMsg = fmt.Sprintf(" - err: %s", err.Error())
 			}
 
-			require.Equal(t, test.expectedErr, errBool)
+			require.Equal(t, test.expectedErr, errBool, "error field"+errMsg)
 
-			assert.Equal(t, test.expectedBet.Type, bet.Type)
-			assert.Equal(t, test.expectedBet.Odd, bet.Odd)
-			assert.InDelta(t, test.expectedBet.Amount, bet.Amount, amountEqualityThreshold)
+			assert.Equal(t, test.expectedBet.Type, bet.Type, "bet type field")
+			assert.Equal(t, test.expectedBet.Odd, bet.Odd, "bet odd field")
+			assert.InDelta(t, test.expectedBet.Amount, bet.Amount, amountEqualityThreshold, "bet amount field")
 
-			assert.InDelta(t, test.expectedPL, pl, amountEqualityThreshold)
+			assert.InDelta(t, test.expectedWinPL, bet.WinPL, amountEqualityThreshold, "Win P&L field")
+			assert.InDelta(t, test.expectedLosePL, bet.LosePL, amountEqualityThreshold, "Lose P&L field")
 		})
 	}
 }
 
-func TestGreenBookAcrossSelection(t *testing.T) {
+func TestGreenBookAtAllOdds(t *testing.T) {
 	tests := map[string]struct {
 		bets               []betting.Bet
 		index              int
@@ -235,7 +253,7 @@ func TestGreenBookAcrossSelection(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			var errBool bool
-			ladder, err := betting.GreenBookAcrossSelection(test.bets)
+			ladder, err := betting.GreenBookAtAllOdds(test.bets)
 			if err != nil {
 				errBool = true
 			}
