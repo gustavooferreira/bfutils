@@ -21,6 +21,7 @@ coverage-report:
 
 .PHONY: lint
 lint:
+	@gofmt -l .
 	@go vet ./...
 
 
