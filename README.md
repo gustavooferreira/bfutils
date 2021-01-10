@@ -1,4 +1,4 @@
-# Betfair Utils package
+# Betfair Utils
 
 [![Build Status](https://travis-ci.com/gustavooferreira/bfutils.svg?branch=master)](https://travis-ci.com/gustavooferreira/bfutils)
 [![codecov](https://codecov.io/gh/gustavooferreira/bfutils/branch/master/graph/badge.svg)](https://codecov.io/gh/gustavooferreira/bfutils)
@@ -12,10 +12,10 @@ Features include:
 
 - [Odds operations](#bfutils-package)
 - [Betting calculations](#betting-package)
-- [Horse Races](#horserace-package)
+- [Horse Races helper methods](#horserace-package)
 - [Distance conversions](#conversion-package)
 
-[`bfutils`](https://pkg.go.dev/github.com/gustavooferreira/bfutils "bfutils documentation") package
+## [`bfutils`](https://pkg.go.dev/github.com/gustavooferreira/bfutils "API documentation") package
 
 The `bfutils` package provides some helpful methods that allow you to do some calculations with odds.
 
@@ -61,6 +61,69 @@ func main() {
 
 ```
 
+## [`betting`](https://pkg.go.dev/github.com/gustavooferreira/bfutils/betting "API documentation") package
+
+The `betting` package provides some helpful methods that allow you to ...
+
+- ...
+
+See it in action:
+
+```go
+package main
+
+import (
+  "fmt"
+  "github.com/gustavooferreira/bfutils/betting"
+)
+
+func main() {
+}
+
+```
+
+## [`horserace`](https://pkg.go.dev/github.com/gustavooferreira/bfutils/horserace "API documentation") package
+
+The `horserace` package provides some helpful methods that allow you to ...
+
+- ...
+
+See it in action:
+
+```go
+package main
+
+import (
+  "fmt"
+  "github.com/gustavooferreira/bfutils/horserace"
+)
+
+func main() {
+}
+
+```
+
+## [`conversion`](https://pkg.go.dev/github.com/gustavooferreira/bfutils/conversion "API documentation") package
+
+The `conversion` package provides some helpful methods that allow you to ...
+
+- ...
+
+See it in action:
+
+```go
+package main
+
+import (
+  "fmt"
+  "github.com/gustavooferreira/bfutils/conversion"
+)
+
+func main() {
+}
+
+```
+
 ---
 
 # Installation
@@ -76,14 +139,14 @@ This will then make the following packages available to you:
     github.com/gustavooferreira/bfutils/horserace
     github.com/gustavooferreira/bfutils/conversion
 
-Import the `bfutils/horserace` package into your code using this template:
+Import the `bfutils/betting` package into your code using this template:
 
 ```go
 package main
 
 import (
   "fmt"
-  "github.com/gustavooferreira/bfutils/horserace"
+  "github.com/gustavooferreira/bfutils/betting"
 )
 
 func main() {
