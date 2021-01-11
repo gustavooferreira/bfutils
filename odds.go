@@ -1,3 +1,4 @@
+// Package bfutils provides a set of utility functions that help with day to day automation in the Betfair exchange
 package bfutils
 
 import (
