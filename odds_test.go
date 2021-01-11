@@ -261,7 +261,7 @@ func TestOddWithinBoundaries(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			value := bfutils.OddWithinBoundaries(test.odd)
+			value := bfutils.IsOddWithinBoundaries(test.odd)
 			assert.Equal(t, test.expected, value)
 		})
 	}

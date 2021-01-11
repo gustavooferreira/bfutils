@@ -6,7 +6,7 @@ import (
 	"github.com/gustavooferreira/bfutils"
 )
 
-// In this example, we computing the ticks difference between two odds.
+// This example, computes the ticks difference between two odds.
 func Example_a() {
 	randomOdd := 4.051
 
@@ -29,7 +29,7 @@ func Example_a() {
 		panic(err)
 	}
 
-	fmt.Printf("Ticks difference between both odds: %d", ticksDiff)
+	fmt.Printf("Ticks difference between both odds: %d\n", ticksDiff)
 
 	// Output:
 	// Odd1: 5.00 - position in the ladder: 180

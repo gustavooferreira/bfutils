@@ -9,7 +9,7 @@ import (
 // OddsCount is a constant defining the number of available odds in the ladder.
 const OddsCount = 350
 
-// Odds is an array of float64s holding the value of all allowed odds.
+// Odds is an array of float64 holding the value of all tradable odds.
 var Odds = [...]float64{
 	1.01, 1.02, 1.03, 1.04, 1.05, 1.06, 1.07, 1.08, 1.09, 1.1,
 	1.11, 1.12, 1.13, 1.14, 1.15, 1.16, 1.17, 1.18, 1.19, 1.2,
@@ -44,7 +44,7 @@ var Odds = [...]float64{
 	830, 840, 850, 860, 870, 880, 890, 900, 910, 920, 930, 940,
 	950, 960, 970, 980, 990, 1000}
 
-// OddsStr is an array of strings holding the value of all allowed odds.
+// OddsStr is an array of strings holding the value of all tradable odds.
 var OddsStr = [...]string{
 	"1.01", "1.02", "1.03", "1.04", "1.05", "1.06", "1.07", "1.08", "1.09", "1.1",
 	"1.11", "1.12", "1.13", "1.14", "1.15", "1.16", "1.17", "1.18", "1.19", "1.2",
@@ -93,10 +93,11 @@ var OddsRange = []map[string]float64{
 	{"begin": 110, "end": 1000, "var": 10, "ticks": 90},
 }
 
-// OddFloor returns the same odd if they match or the very next odd below.
-// index returns the index of the odd in the ladder
-func OddFloor(odd float64) (int, float64, error) {
-	_, index, err := FindOdd(odd)
+// OddFloor returns the same odd input rounded towards 1.01.
+// If the odd supplied is one of the available odds in the ladder, than the same odd is returned.
+// index returns the index of the odd in the ladder.
+func OddFloor(odd float64) (index int, oddRounded float64, err error) {
+	_, index, err = FindOdd(odd)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -104,9 +105,10 @@ func OddFloor(odd float64) (int, float64, error) {
 	return index, Odds[index], nil
 }
 
-// OddCeil returns the same odd if they match or the very next odd above.
-// index returns the index of the odd in the ladder
-func OddCeil(odd float64) (int, float64, error) {
+// OddCeil returns the same odd input rounded towards 1000.
+// If the odd supplied is one of the available odds in the ladder, than the same odd is returned.
+// index returns the index of the odd in the ladder.
+func OddCeil(odd float64) (index int, oddRounded float64, err error) {
 	match, index, err := FindOdd(odd)
 	if err != nil {
 		return 0, 0, err
@@ -118,9 +120,10 @@ func OddCeil(odd float64) (int, float64, error) {
 	return index + 1, Odds[index+1], nil
 }
 
-// OddRound returns the closest odd up or down.
-// index returns the index of the odd in the ladder
-func OddRound(odd float64) (int, float64, error) {
+// OddRound returns the same odd input rounded to the nearest odd in the ladder.
+// If the odd supplied is one of the available odds in the ladder, than the same odd is returned.
+// index returns the index of the odd in the ladder.
+func OddRound(odd float64) (index int, oddRounded float64, err error) {
 	match, index, err := FindOdd(odd)
 	if err != nil {
 		return 0, 0, err
@@ -140,8 +143,10 @@ func OddRound(odd float64) (int, float64, error) {
 	return index + 1, Odds[index+1], nil
 }
 
-// OddShift shifts the Odd. If shift is higher than zero, in increases the odd, if it's less than zero it decreases the odd.
-// shift represents the number of ticks to go up or down.
+// OddShift shifts the Odd up or down in the ladder.
+// If shift is higher than zero, it shifts the odd towards 1000, if it's less than zero it shifts the odd towards 1.01.
+// roundType is the round method to be used.
+// shift represents the number of ticks to shift the odd.
 func OddShift(roundType RoundType, odd float64, shift int) (index int, oddOut float64, err error) {
 	switch roundType {
 	case RoundType_Ceil:
@@ -164,8 +169,9 @@ func OddShift(roundType RoundType, odd float64, shift int) (index int, oddOut fl
 	return index, Odds[index], nil
 }
 
-// Get ticks difference between two odds
-func OddsTicksDiff(roundType RoundType, odd1 float64, odd2 float64) (int, error) {
+// OddsTicksDiff computes the number of ticks between two odds.
+// roundType is the round method to be used.
+func OddsTicksDiff(roundType RoundType, odd1 float64, odd2 float64) (ticksDiff int, err error) {
 	var index1 int
 	var index2 int
 	var err1 error
@@ -177,10 +183,10 @@ func OddsTicksDiff(roundType RoundType, odd1 float64, odd2 float64) (int, error)
 		index2, _, err2 = OddCeil(odd2)
 	case RoundType_Round:
 		index1, _, err1 = OddRound(odd1)
-		index2, _, err2 = OddCeil(odd2)
+		index2, _, err2 = OddRound(odd2)
 	case RoundType_Floor:
 		index1, _, err1 = OddFloor(odd1)
-		index2, _, err2 = OddCeil(odd2)
+		index2, _, err2 = OddFloor(odd2)
 	}
 
 	if err1 != nil {
@@ -194,8 +200,8 @@ func OddsTicksDiff(roundType RoundType, odd1 float64, odd2 float64) (int, error)
 	return int(math.Abs(float64(index2 - index1))), nil
 }
 
-// OddWithinBoundaries checks if odd is within trading range
-func OddWithinBoundaries(odd float64) bool {
+// IsOddWithinBoundaries checks if odd is within trading range
+func IsOddWithinBoundaries(odd float64) bool {
 	if equalWithTolerance(odd, 1000) {
 		return true
 	} else if odd > 1000 {
@@ -211,10 +217,12 @@ func OddWithinBoundaries(odd float64) bool {
 	return true
 }
 
-// If match, then index is the index of the match, if not, returns the index of the left of odd
+// FindOdd tries to find the odd in the ladder.
+// If it finds it, then index is the odd index in the ladder.
+// If it doesn't find it, it will return the index in the ladder that is the closest to the odd on the left side.
 func FindOdd(odd float64) (match bool, index int, err error) {
 	// Boundaries
-	if withinBoundary := OddWithinBoundaries(odd); !withinBoundary {
+	if withinBoundary := IsOddWithinBoundaries(odd); !withinBoundary {
 		return false, 0, fmt.Errorf("odd provided [%f] is outside of trading range", odd)
 	}
 
@@ -249,11 +257,15 @@ func equalWithTolerance(a float64, b float64) bool {
 	return math.Abs(a-b) <= float64EqualityThreshold
 }
 
+// RoundType is the round method to be used.
 type RoundType uint
 
 const (
+	// RoundType_Ceil round towards 1000.
 	RoundType_Ceil = iota
+	// RoundType_Round round to the nearest odd in the ladder.
 	RoundType_Round
+	// RoundType_Floor round towards 1.01.
 	RoundType_Floor
 )
 

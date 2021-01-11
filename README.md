@@ -30,8 +30,8 @@ See it in action:
 package main
 
 import (
-  "fmt"
-  "github.com/gustavooferreira/bfutils"
+    "fmt"
+    "github.com/gustavooferreira/bfutils"
 )
 
 func main() {
@@ -56,7 +56,7 @@ func main() {
         panic(err)
     }
 
-    fmt.Printf("Ticks difference between both odds: %d", ticksDiff)
+    fmt.Printf("Ticks difference between both odds: %d\n", ticksDiff)
 }
 
 ```
@@ -73,8 +73,8 @@ See it in action:
 package main
 
 import (
-  "fmt"
-  "github.com/gustavooferreira/bfutils/betting"
+    "fmt"
+    "github.com/gustavooferreira/bfutils/betting"
 )
 
 func main() {
@@ -84,7 +84,7 @@ func main() {
 
 ## [`horserace`](https://pkg.go.dev/github.com/gustavooferreira/bfutils/horserace "API documentation") package
 
-The `horserace` package provides some helpful methods that allow you to ...
+The `horserace` package provides helper functions that facilitate operations specifically with the horse racing markets.
 
 - ...
 
@@ -94,8 +94,8 @@ See it in action:
 package main
 
 import (
-  "fmt"
-  "github.com/gustavooferreira/bfutils/horserace"
+    "fmt"
+    "github.com/gustavooferreira/bfutils/horserace"
 )
 
 func main() {
@@ -105,7 +105,7 @@ func main() {
 
 ## [`conversion`](https://pkg.go.dev/github.com/gustavooferreira/bfutils/conversion "API documentation") package
 
-The `conversion` package provides some helpful methods that allow you to ...
+The `conversion` package provides helper functions to convert distance from/to various different distance units.
 
 - ...
 
@@ -115,11 +115,21 @@ See it in action:
 package main
 
 import (
-  "fmt"
-  "github.com/gustavooferreira/bfutils/conversion"
+    "fmt"
+    "github.com/gustavooferreira/bfutils/conversion"
 )
 
 func main() {
+	raceDistance := "2m5f100y"
+
+	d, err := conversion.ParseDistance(raceDistance)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("This race distance [%s] has %d miles, %d furlongs and %d yards.\n",
+		d, d.Miles, d.Furlongs, d.Yards)
+	fmt.Printf("This race distance in meters is: %.2f\n", d.ToMeters())
 }
 
 ```
@@ -145,12 +155,11 @@ Import the `bfutils/betting` package into your code using this template:
 package main
 
 import (
-  "fmt"
-  "github.com/gustavooferreira/bfutils/betting"
+    "fmt"
+    "github.com/gustavooferreira/bfutils/betting"
 )
 
 func main() {
-
 }
 ```
 
@@ -168,6 +177,12 @@ To run tests:
 
 ```
 make test
+```
+
+To get coverage:
+
+```
+make coverage
 ```
 
 ---
