@@ -135,7 +135,7 @@ func ParseDistance(distStr string) (dist Distance, err error) {
 	return standardizeMetrics(uint(miles), uint(furlongs), uint(yards)), nil
 }
 
-// String is the string representation of Distance in the betfair format.
+// String returns the string representation of Distance in the betfair format.
 // Format: XmYfZy
 func (d Distance) String() string {
 	var result string

@@ -4,8 +4,8 @@ package horserace
 // disregard Novice, Beginners etc as using the three abbreviations will not fit.
 // Therefore Hcap Hrd, or Hcap Chs.
 
-// ClassToAbbrev is a map from Classification to Abbreviation
-var ClassToAbbrev = map[string]string{
+// classToAbbrev is a map from Classification to Abbreviation
+var classToAbbrev = map[string]string{
 	"Listed Race":               "Listed",
 	"Group 1":                   "Grp1",
 	"Group 2":                   "Grp2",
@@ -36,8 +36,8 @@ var ClassToAbbrev = map[string]string{
 	"(Non Of the Above)":        "Stks",
 }
 
-// AbbrevToClass is a map from Abbreviation to Classification
-var AbbrevToClass = map[string][]string{
+// abbrevToClass is a map from Abbreviation to Classification
+var abbrevToClass = map[string][]string{
 	"Listed":     {"Listed Race"},
 	"Grp1":       {"Group 1"},
 	"Grp2":       {"Group 2"},
@@ -45,7 +45,7 @@ var AbbrevToClass = map[string][]string{
 	"Mdn Stks":   {"Maiden Stakes"},
 	"Sell Stks":  {"Selling Stakes"},
 	"Claim Stks": {"Claiming Stakes"},
-	"Hcap":       {"Rated Stakes", "Handicap", "Showcase Handicap"},
+	"Hcap":       {"Handicap", "Showcase Handicap", "Rated Stakes"},
 	"Class Stks": {"Classified Stakes"},
 	"Nursery":    {"Nursery Handicap"},
 	"Mdn":        {"Maiden"},

@@ -86,7 +86,8 @@ func main() {
 
 The `horserace` package provides helper functions that facilitate operations specifically with the horse racing markets.
 
-- ...
+- Get race classification and distance from betfair market name
+- Get race track name and classification from betfair abbreviations and vice-versa.
 
 See it in action:
 
@@ -99,6 +100,16 @@ import (
 )
 
 func main() {
+	raceBetfairName := "2m3f Hcap"
+
+	name, distance := horserace.GetClassAndDistance(raceBetfairName)
+	class, err := horserace.GetClassificationFromAbbrev(name)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Race classification: %s\n", class)
+	fmt.Printf("Race distance: %s\n", distance)
 }
 
 ```
@@ -107,7 +118,8 @@ func main() {
 
 The `conversion` package provides helper functions to convert distance from/to various different distance units.
 
-- ...
+- Convert from/to meters
+- Parse betfair race distances
 
 See it in action:
 

@@ -1,7 +1,7 @@
 package horserace
 
-// UKTrackToAbbrev is a map from Track to Abbreviation
-var UKTrackToAbbrev = map[string]string{
+// ukTrackToAbbrev is a map from Track to Abbreviation
+var ukTrackToAbbrev = map[string]string{
 	"Aintree":         "Aint",
 	"Ascot":           "Ascot",
 	"Ayr":             "Ayr",
@@ -65,8 +65,8 @@ var UKTrackToAbbrev = map[string]string{
 	"York":            "York",
 }
 
-// UKAbbrevToTrack is a map from Abbreviation to Track
-var UKAbbrevToTrack = map[string]string{
+// ukAbbrevToTrack is a map from Abbreviation to Track
+var ukAbbrevToTrack = map[string]string{
 	"Aint":   "Aintree",
 	"Ascot":  "Ascot",
 	"Ayr":    "Ayr",
@@ -130,8 +130,8 @@ var UKAbbrevToTrack = map[string]string{
 	"York":   "York",
 }
 
-// IRETrackToAbbrev is a map from Track to Abbreviation
-var IRETracksToAbbrev = map[string]string{
+// ireTrackToAbbrev is a map from Track to Abbreviation
+var ireTrackToAbbrev = map[string]string{
 	"Ballinrobe":   "Ballin",
 	"Bellewstown":  "Belle",
 	"Clonmel":      "Clon",
@@ -162,8 +162,8 @@ var IRETracksToAbbrev = map[string]string{
 	"Wexford":      "Wex",
 }
 
-// IREAbbrevToTrack is a map from Abbreviation to Track
-var IREAbbrevToTrack = map[string]string{
+// ireAbbrevToTrack is a map from Abbreviation to Track
+var ireAbbrevToTrack = map[string]string{
 	"Ballin": "Ballinrobe",
 	"Belle":  "Bellewstown",
 	"Clon":   "Clonmel",
