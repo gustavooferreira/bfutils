@@ -22,7 +22,7 @@ The `bfutils` package provides some helpful methods that allow you to do some ca
 - Find if a given arbitrary float belongs to the set of tradeable odds
 - Round, Floor and Ceiling rounding operations when the float doesn't match one of the tradeable values allowed
 - Find how many ticks away two odds are from each other
-- Shift an odd by X ticks.
+- Shift an odd by X ticks
 
 See it in action:
 
@@ -63,9 +63,13 @@ func main() {
 
 ## [`betting`](https://pkg.go.dev/github.com/gustavooferreira/bfutils/betting "API documentation") package
 
-The `betting` package provides some helpful methods that allow you to ...
+The `betting` package provides some helpful methods that allow you to calculate Free bets, GreenBooks
+// and various other related operations like computing green books at all odds, to be displayed on a
+// ladder.
 
-- ...
+- Compute free bets
+- Compute green books
+- Compute P&L on all odds in the ladder
 
 See it in action:
 
@@ -78,6 +82,29 @@ import (
 )
 
 func main() {
+	selection := betting.Selection{
+		Bets: []betting.Bet{
+			{Type: betting.BetType_Back, Odd: 4, Amount: 5},
+			{Type: betting.BetType_Lay, Odd: 3, Amount: 5},
+			{Type: betting.BetType_Back, Odd: 3.5, Amount: 10},
+			{Type: betting.BetType_Lay, Odd: 3.2, Amount: 10},
+		},
+		CurrentBackOdd: 2.4,
+		CurrentLayOdd:  2.42,
+	}
+
+	bet, err := betting.GreenBookSelection(selection)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("In order to green book this selection, put a {%s} bet at {%.2f} for £%.2f.\n",
+		bet.Type, bet.Odd, bet.Amount)
+
+	fmt.Printf("P&L\n")
+	fmt.Printf("---\n")
+	fmt.Printf("If this selection wins:  £%.2f\n", bet.WinPL)
+	fmt.Printf("If this selection loses: £%.2f\n", bet.LosePL)
 }
 
 ```
@@ -87,7 +114,7 @@ func main() {
 The `horserace` package provides helper functions that facilitate operations specifically with the horse racing markets.
 
 - Get race classification and distance from betfair market name
-- Get race track name and classification from betfair abbreviations and vice-versa.
+- Get race track name and classification from betfair abbreviations and vice-versa
 
 See it in action:
 

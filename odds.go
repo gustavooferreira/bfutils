@@ -200,7 +200,8 @@ func OddsTicksDiff(roundType RoundType, odd1 float64, odd2 float64) (ticksDiff i
 	return int(math.Abs(float64(index2 - index1))), nil
 }
 
-// IsOddWithinBoundaries checks if odd is within trading range
+// IsOddWithinBoundaries checks if odd is within trading range.
+// I.e., odd is between 1.01 and 1000.
 func IsOddWithinBoundaries(odd float64) bool {
 	if equalWithTolerance(odd, 1000) {
 		return true

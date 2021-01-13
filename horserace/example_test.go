@@ -6,7 +6,7 @@ import (
 	"github.com/gustavooferreira/bfutils/horserace"
 )
 
-// This example parses a horse race's betfair market name and returns the distance and then
+// This example parses a horse race's betfair market name and returns the distance and
 // the race classification.
 func Example_a() {
 	raceBetfairName := "2m3f Hcap"
