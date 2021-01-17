@@ -4,32 +4,38 @@ package betting
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/gustavooferreira/bfutils"
+	"github.com/gustavooferreira/bfutils/internal"
 )
 
-// FreeBetDecimal returns the P&L multiplier factor
+// FreeBetDecimal returns the P&L multiplier factor.
 // Example: back:4 lay:2 the multiplier factor is 2, which means if you back at odd 4 with £10
 // and lay at odd 2 with £10 you secure a free bet of 2 * £10 = £20
 func FreeBetDecimal(oddBack float64, oddLay float64) float64 {
 	return oddBack - oddLay
 }
 
-// FreeBetAmount returns the profit in case selection wins.
+// FreeBetPL returns the profit in case selection wins.
 // Note that 'stake' is the backer's stake not the layer's liability
-func FreeBetAmount(oddBack float64, oddLay float64, stake float64) float64 {
+func FreeBetPL(oddBack float64, oddLay float64, stake float64) float64 {
 	return FreeBetDecimal(oddBack, oddLay) * stake
 }
 
-// GreenBookOpenBackAmount returns lay stake to greenbook.
-func GreenBookOpenBackAmount(oddBack float64, stakeBack float64, oddLay float64) float64 {
-	return (stakeBack * oddBack) / oddLay
+// GreenBookOpenBackDecimal returns percentage of P&L.
+func GreenBookOpenBackDecimal(oddBack float64, oddLay float64) (float64, error) {
+	if oddLay < 1.01 {
+		return 0, fmt.Errorf("oddLay cannot be outside of trading range")
+	}
+	return oddBack/oddLay - 1, nil
 }
 
-// GreenBookOpenBackDecimal returns percentage of P&L
-func GreenBookOpenBackDecimal(oddBack float64, oddLay float64) float64 {
-	return oddBack/oddLay - 1
+// GreenBookOpenBackAmount returns lay stake to greenbook.
+func GreenBookOpenBackAmount(oddBack float64, stakeBack float64, oddLay float64) (float64, error) {
+	if oddLay < 1.01 {
+		return 0, fmt.Errorf("oddLay cannot be outside of trading range")
+	}
+	return (stakeBack * oddBack) / oddLay, nil
 }
 
 // GreenBookOpenBackAmountByPerc returns oddLay for a given perc P&L
@@ -37,28 +43,44 @@ func GreenBookOpenBackDecimal(oddBack float64, oddLay float64) float64 {
 // therefore feeding perc with a number less or equal to -1 is an error!
 // perc is a representation in decimal, meaning if you want to know at what LAY odd you should
 // place a bet at in order to get 100% profit, then perc is == 1
-func GreenBookOpenBackAmountByPerc(oddBack float64, perc float64) float64 {
-	return oddBack / (perc + 1)
-}
-
-// GreenBookOpenBackAmount returns back stake to greenbook.
-func GreenBookOpenLayAmount(oddLay float64, stakeLay float64, oddBack float64) float64 {
-	return (stakeLay * oddLay) / oddBack
+func GreenBookOpenBackAmountByPerc(oddBack float64, perc float64) (float64, error) {
+	if perc <= -1 {
+		return 0, fmt.Errorf("cannot lose more than 100%% of stake when backing")
+	}
+	return oddBack / (perc + 1), nil
 }
 
 // GreenBookOpenLayDecimal returns percentage of P&L
-func GreenBookOpenLayDecimal(oddLay float64, oddBack float64) float64 {
-	return 1 - oddLay/oddBack
+func GreenBookOpenLayDecimal(oddLay float64, oddBack float64) (float64, error) {
+	if oddBack < 1.01 {
+		return 0, fmt.Errorf("oddBack cannot be outside of trading range")
+	}
+	return 1 - oddLay/oddBack, nil
+}
+
+// GreenBookOpenLayAmount returns back stake to greenbook.
+func GreenBookOpenLayAmount(oddLay float64, stakeLay float64, oddBack float64) (float64, error) {
+	if oddBack < 1.01 {
+		return 0, fmt.Errorf("oddBack cannot be outside of trading range")
+	}
+	return (stakeLay * oddLay) / oddBack, nil
 }
 
 // GreenBookOpenLayAmountByPerc returns oddBack for a given perc P&L
 // Note that when Laying, you cannot win more than 100% of your stake
-// therefore feeding perc with a number less or equal to -1 is an error!
-func GreenBookOpenLayAmountByPerc(oddLay float64, perc float64) float64 {
-	return oddLay / (1 - perc)
+// therefore feeding perc with a number greater or equal to 1 is an error!
+func GreenBookOpenLayAmountByPerc(oddLay float64, perc float64) (float64, error) {
+	if perc >= 1 {
+		return 0, fmt.Errorf("cannot win more than 100%% of stake when laying")
+	}
+	return oddLay / (1 - perc), nil
 }
 
-// SelectionIsEdged returns true if selection is already been edged or there is nothing to be done.
+// -------------
+
+// SelectionIsEdged returns true if selection is already been edged or if there are no bets in this selection.
+// This might not give an accurate result in the sense that the selection might not be edged perfectly,
+// because it might not be possible to edge it "even" across all outcomes at the current odds.
 func SelectionIsEdged(bets []Bet) (bool, error) {
 	layAvgOdd := 0.0
 	layAmount := 0.0
@@ -85,16 +107,18 @@ func SelectionIsEdged(bets []Bet) (bool, error) {
 		} else if bet.Type == BetType_Lay {
 			layAvgOdd = (layAvgOdd*layAmount + bet.Odd*bet.Amount) / (layAmount + bet.Amount)
 			layAmount += bet.Amount
+		} else {
+			return false, fmt.Errorf("unknown bet type")
 		}
 	}
 
-	if equalWithTolerance(0.0, backAvgOdd*backAmount-layAvgOdd*layAmount) {
+	if internal.EqualWithTolerance(0.0, backAvgOdd*backAmount-layAvgOdd*layAmount) {
 		return true, nil
 	}
 	return false, nil
 }
 
-// GreenBookSelection computes odd and amount in order to greenbook a selection
+// GreenBookSelection computes what bet to make in order to greenbook a selection.
 func GreenBookSelection(selection Selection) (bet Bet, err error) {
 	layAvgOdd := 0.0
 	layAmount := 0.0
@@ -106,24 +130,25 @@ func GreenBookSelection(selection Selection) (bet Bet, err error) {
 	currentLayOdd := selection.CurrentLayOdd
 
 	if bets == nil || len(bets) == 0 {
-		return bet, &ErrNoBet{"no bets in this selection"}
+		return bet, fmt.Errorf("no bets in this selection")
 	}
 
-	// Check Odd is valid
+	// Check current back Odd is valid
 	match, _, err := bfutils.FindOdd(currentBackOdd)
 	if err != nil {
 		return bet, err
 	}
 	if !match {
-		return bet, &ErrNoBet{fmt.Sprintf("odd provided [%f] does not exist in the ladder", currentBackOdd)}
+		return bet, fmt.Errorf("odd provided [%f] does not exist in the ladder", currentBackOdd)
 	}
 
+	// Check current lay Odd is valid
 	match, _, err = bfutils.FindOdd(currentLayOdd)
 	if err != nil {
 		return bet, err
 	}
 	if !match {
-		return bet, &ErrNoBet{fmt.Sprintf("odd provided [%f] does not exist in the ladder", currentLayOdd)}
+		return bet, fmt.Errorf("odd provided [%f] does not exist in the ladder", currentLayOdd)
 	}
 
 	for _, b := range bets {
@@ -137,7 +162,7 @@ func GreenBookSelection(selection Selection) (bet Bet, err error) {
 			return bet, err
 		}
 		if !match {
-			return bet, &ErrNoBet{fmt.Sprintf("odd provided [%f] does not exist in the ladder", b.Odd)}
+			return bet, fmt.Errorf("odd provided [%f] does not exist in the ladder", b.Odd)
 		}
 
 		if b.Type == BetType_Back {
@@ -154,8 +179,8 @@ func GreenBookSelection(selection Selection) (bet Bet, err error) {
 	backBetAmount := (layAvgOdd*layAmount - backAvgOdd*backAmount) / currentBackOdd
 	layBetAmount := (backAvgOdd*backAmount - layAvgOdd*layAmount) / currentLayOdd
 
-	if equalWithTolerance(0.0, backBetAmount) && equalWithTolerance(0.0, layBetAmount) {
-		return bet, &ErrNoBet{"selection is already edged"}
+	if internal.EqualWithTolerance(0.0, backBetAmount) && internal.EqualWithTolerance(0.0, layBetAmount) {
+		return bet, &AlreadyEdgedError{}
 	} else if backBetAmount > 0 {
 		bet.Type = BetType_Back
 		bet.Odd = currentBackOdd
@@ -168,19 +193,17 @@ func GreenBookSelection(selection Selection) (bet Bet, err error) {
 		bet.Amount = layBetAmount
 		bet.WinPL = backAmount*(backAvgOdd-1) - layAmount*(layAvgOdd-1) - layBetAmount*(currentLayOdd-1)
 		bet.LosePL = layAmount - backAmount + layBetAmount
-	} else {
-		return bet, &ErrNoBet{"unknown error"}
 	}
 
 	return bet, nil
 }
 
-// GreenBookAcrossSelections computes odd and amount in order to greenbook all selections
-func GreenBookAcrossSelections(selections []Selection) (bets []Bet, err error) {
-	return
-}
+// GreenBookAcrossSelections computes odd and amount in order to greenbook all selections.
+// func GreenBookAcrossSelections(selections []Selection) (bets []Bet, err error) {
+// 	return
+// }
 
-// GreenBookAtAllOdds returns the ladder with P&L and Volumed matched by bets
+// GreenBookAtAllOdds returns the ladder with P&L and Volumed matched by bets.
 func GreenBookAtAllOdds(bets []Bet) ([]LadderStep, error) {
 	layAvgOdd := 0.0
 	layAmount := 0.0
@@ -200,7 +223,7 @@ func GreenBookAtAllOdds(bets []Bet) ([]LadderStep, error) {
 			return nil, err
 		}
 		if !match {
-			return nil, &ErrNoBet{fmt.Sprintf("odd provided [%f] does not exist in the ladder", bet.Odd)}
+			return nil, fmt.Errorf("odd provided [%f] does not exist in the ladder", bet.Odd)
 		}
 
 		oddsMatched[bet.Odd] += bet.Amount
@@ -224,7 +247,7 @@ func GreenBookAtAllOdds(bets []Bet) ([]LadderStep, error) {
 		backBetAmount := (layAvgOdd*layAmount - backAvgOdd*backAmount) / odd
 		layBetAmount := (backAvgOdd*backAmount - layAvgOdd*layAmount) / odd
 
-		if equalWithTolerance(0.0, backBetAmount) && equalWithTolerance(0.0, layBetAmount) {
+		if internal.EqualWithTolerance(0.0, backBetAmount) && internal.EqualWithTolerance(0.0, layBetAmount) {
 			ls.GreenBookPL = 0.0
 		} else if backBetAmount > 0 {
 			ls.GreenBookPL = backAmount*(backAvgOdd-1) - layAmount*(layAvgOdd-1) + backBetAmount*(odd-1)
@@ -232,8 +255,6 @@ func GreenBookAtAllOdds(bets []Bet) ([]LadderStep, error) {
 		} else if layBetAmount > 0 {
 			ls.GreenBookPL = backAmount*(backAvgOdd-1) - layAmount*(layAvgOdd-1) - layBetAmount*(odd-1)
 			ls.VolMatched = oddsMatched[odd] + layBetAmount
-		} else {
-			continue
 		}
 
 		ladder[i] = ls
@@ -242,17 +263,10 @@ func GreenBookAtAllOdds(bets []Bet) ([]LadderStep, error) {
 	return ladder, nil
 }
 
-// ErrNoBet is the error used in case a betting operation cannot be performed.
-type ErrNoBet struct {
-	msg string
+// AlreadyEdgedError is the error used in case a betting operation cannot be performed.
+type AlreadyEdgedError struct {
 }
 
-func (e *ErrNoBet) Error() string {
-	return e.msg
-}
-
-// Helper function and constant to help estimate whether odd matches or not
-func equalWithTolerance(a float64, b float64) bool {
-	const float64EqualityThreshold = 1e-9
-	return math.Abs(a-b) <= float64EqualityThreshold
+func (e *AlreadyEdgedError) Error() string {
+	return "selection is already edged"
 }

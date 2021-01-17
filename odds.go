@@ -4,6 +4,8 @@ package bfutils
 import (
 	"fmt"
 	"math"
+
+	"github.com/gustavooferreira/bfutils/internal"
 )
 
 // OddsCount is a constant defining the number of available odds in the ladder.
@@ -203,13 +205,13 @@ func OddsTicksDiff(roundType RoundType, odd1 float64, odd2 float64) (ticksDiff i
 // IsOddWithinBoundaries checks if odd is within trading range.
 // I.e., odd is between 1.01 and 1000.
 func IsOddWithinBoundaries(odd float64) bool {
-	if equalWithTolerance(odd, 1000) {
+	if internal.EqualWithTolerance(odd, 1000) {
 		return true
 	} else if odd > 1000 {
 		return false
 	}
 
-	if equalWithTolerance(odd, 1.01) {
+	if internal.EqualWithTolerance(odd, 1.01) {
 		return true
 	} else if odd < 1.01 {
 		return false
@@ -227,9 +229,9 @@ func FindOdd(odd float64) (match bool, index int, err error) {
 		return false, 0, fmt.Errorf("odd provided [%f] is outside of trading range", odd)
 	}
 
-	if equalWithTolerance(odd, 1000) {
+	if internal.EqualWithTolerance(odd, 1000) {
 		return true, OddsCount - 1, nil
-	} else if equalWithTolerance(odd, 1.01) {
+	} else if internal.EqualWithTolerance(odd, 1.01) {
 		return true, 0, nil
 	}
 
@@ -239,7 +241,7 @@ func FindOdd(odd float64) (match bool, index int, err error) {
 	for lo < hi {
 		mid := (lo + hi) / 2
 
-		if equalWithTolerance(odd, Odds[mid]) {
+		if internal.EqualWithTolerance(odd, Odds[mid]) {
 			return true, mid, nil
 		} else if odd < Odds[mid] {
 			hi = mid
@@ -249,13 +251,6 @@ func FindOdd(odd float64) (match bool, index int, err error) {
 	}
 
 	return false, lo - 1, nil
-}
-
-// Helper function and constant to help estimate whether odd matches or not
-func equalWithTolerance(a float64, b float64) bool {
-	const float64EqualityThreshold = 1e-9
-
-	return math.Abs(a-b) <= float64EqualityThreshold
 }
 
 // RoundType is the round method to be used.

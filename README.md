@@ -64,8 +64,8 @@ func main() {
 ## [`betting`](https://pkg.go.dev/github.com/gustavooferreira/bfutils/betting "API documentation") package
 
 The `betting` package provides some helpful methods that allow you to calculate Free bets, GreenBooks
-// and various other related operations like computing green books at all odds, to be displayed on a
-// ladder.
+and various other related operations like computing green books at all odds, to be displayed on a
+ladder.
 
 - Compute free bets
 - Compute green books
