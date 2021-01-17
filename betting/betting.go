@@ -38,7 +38,7 @@ func GreenBookOpenBackAmount(oddBack float64, stakeBack float64, oddLay float64)
 	return (stakeBack * oddBack) / oddLay, nil
 }
 
-// GreenBookOpenBackAmountByPerc returns oddLay for a given perc P&L
+// GreenBookOpenBackAmountByPerc returns oddLay for a given perc P&L.
 // Note that when Backing, you cannot lose more than 100% of your stake
 // therefore feeding perc with a number less or equal to -1 is an error!
 // perc is a representation in decimal, meaning if you want to know at what LAY odd you should
@@ -50,7 +50,7 @@ func GreenBookOpenBackAmountByPerc(oddBack float64, perc float64) (float64, erro
 	return oddBack / (perc + 1), nil
 }
 
-// GreenBookOpenLayDecimal returns percentage of P&L
+// GreenBookOpenLayDecimal returns percentage of P&L.
 func GreenBookOpenLayDecimal(oddLay float64, oddBack float64) (float64, error) {
 	if oddBack < 1.01 {
 		return 0, fmt.Errorf("oddBack cannot be outside of trading range")
@@ -66,7 +66,7 @@ func GreenBookOpenLayAmount(oddLay float64, stakeLay float64, oddBack float64) (
 	return (stakeLay * oddLay) / oddBack, nil
 }
 
-// GreenBookOpenLayAmountByPerc returns oddBack for a given perc P&L
+// GreenBookOpenLayAmountByPerc returns oddBack for a given perc P&L.
 // Note that when Laying, you cannot win more than 100% of your stake
 // therefore feeding perc with a number greater or equal to 1 is an error!
 func GreenBookOpenLayAmountByPerc(oddLay float64, perc float64) (float64, error) {
@@ -203,7 +203,7 @@ func GreenBookSelection(selection Selection) (bet Bet, err error) {
 // 	return
 // }
 
-// GreenBookAtAllOdds returns the ladder with P&L and Volumed matched by bets.
+// GreenBookAtAllOdds returns the ladder with P&L and volumed matched by bets.
 func GreenBookAtAllOdds(bets []Bet) ([]LadderStep, error) {
 	layAvgOdd := 0.0
 	layAmount := 0.0
@@ -263,7 +263,7 @@ func GreenBookAtAllOdds(bets []Bet) ([]LadderStep, error) {
 	return ladder, nil
 }
 
-// AlreadyEdgedError is the error used in case a betting operation cannot be performed.
+// AlreadyEdgedError is the error used in case a selection is already edged.
 type AlreadyEdgedError struct {
 }
 
