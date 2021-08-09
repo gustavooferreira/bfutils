@@ -3,7 +3,7 @@ package conversion_test
 import (
 	"testing"
 
-	"github.com/gustavooferreira/bfutils/conversion"
+	"github.com/gustavooferreira/bfutils/horserace/conversion"
 	"github.com/stretchr/testify/assert"
 )
 

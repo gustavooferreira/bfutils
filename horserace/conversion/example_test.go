@@ -3,7 +3,7 @@ package conversion_test
 import (
 	"fmt"
 
-	"github.com/gustavooferreira/bfutils/conversion"
+	"github.com/gustavooferreira/bfutils/horserace/conversion"
 )
 
 // This example parses a horse race's distance and then prints a human friendly

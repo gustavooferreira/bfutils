@@ -19,7 +19,7 @@ func GetClassAndDistance(marketName string) (name string, distance string) {
 	return name, distance
 }
 
-// GetTrackNameFromAbbrev returns the track name, given the the betfair track abbreviation and country.
+// GetTrackNameFromAbbrev returns the track name, given the betfair track abbreviation and country.
 func GetTrackNameFromAbbrev(country Country, abbrev string) (track string, err error) {
 	var ok bool
 

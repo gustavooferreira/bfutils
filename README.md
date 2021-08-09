@@ -10,10 +10,16 @@ Go code (golang) set of packages that provide many utility functions that help w
 
 Features include:
 
-- [Odds operations](#bfutils-package)
-- [Betting calculations](#betting-package)
-- [Horse Races helper methods](#horserace-package)
-- [Distance conversions](#conversion-package)
+- [Betfair Utils](#betfair-utils)
+	- [`bfutils` package](#bfutils-package)
+	- [`betting` package](#betting-package)
+	- [`horserace` package](#horserace-package)
+	- [`conversion` package](#conversion-package)
+- [Installation](#installation)
+- [Staying up to date](#staying-up-to-date)
+- [Tests](#tests)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## [`bfutils`](https://pkg.go.dev/github.com/gustavooferreira/bfutils "API documentation") package
 
@@ -35,30 +41,29 @@ import (
 )
 
 func main() {
-    randomOdd := 4.051
+	randomOdd := decimal.RequireFromString("4.051")
 
-    index1, odd1, err := bfutils.OddShift(bfutils.RoundType_Floor, randomOdd, 10)
-    if err != nil {
-        panic(err)
-    }
+	index1, odd1, err := bfutils.OddShift(bfutils.RoundType_Floor, randomOdd, 10)
+	if err != nil {
+		panic(err)
+	}
 
-    fmt.Printf("Odd1: %.2f - position in the ladder: %d\n", odd1, index1+1)
+	fmt.Printf("Odd1: %s - position in the ladder: %d\n", odd1.StringFixed(2), index1+1)
 
-    index2, odd2, err := bfutils.OddShift(bfutils.RoundType_Floor, randomOdd, -10)
-    if err != nil {
-        panic(err)
-    }
+	index2, odd2, err := bfutils.OddShift(bfutils.RoundType_Floor, randomOdd, -10)
+	if err != nil {
+		panic(err)
+	}
 
-    fmt.Printf("Odd2: %.2f - position in the ladder: %d\n", odd2, index2+1)
+	fmt.Printf("Odd2: %s - position in the ladder: %d\n", odd2.StringFixed(2), index2+1)
 
-    ticksDiff, err := bfutils.OddsTicksDiff(bfutils.RoundType_Floor, odd1, odd2)
-    if err != nil {
-        panic(err)
-    }
+	ticksDiff, err := bfutils.OddsTicksDiff(bfutils.RoundType_Floor, odd1, odd2)
+	if err != nil {
+		panic(err)
+	}
 
-    fmt.Printf("Ticks difference between both odds: %d\n", ticksDiff)
+	fmt.Printf("Ticks difference between both odds: %d\n", ticksDiff)
 }
-
 ```
 
 ## [`betting`](https://pkg.go.dev/github.com/gustavooferreira/bfutils/betting "API documentation") package
@@ -106,7 +111,6 @@ func main() {
 	fmt.Printf("If this selection wins:  £%.2f\n", bet.WinPL)
 	fmt.Printf("If this selection loses: £%.2f\n", bet.LosePL)
 }
-
 ```
 
 ## [`horserace`](https://pkg.go.dev/github.com/gustavooferreira/bfutils/horserace "API documentation") package
@@ -138,7 +142,6 @@ func main() {
 	fmt.Printf("Race classification: %s\n", class)
 	fmt.Printf("Race distance: %s\n", distance)
 }
-
 ```
 
 ## [`conversion`](https://pkg.go.dev/github.com/gustavooferreira/bfutils/conversion "API documentation") package
@@ -155,7 +158,7 @@ package main
 
 import (
     "fmt"
-    "github.com/gustavooferreira/bfutils/conversion"
+    "github.com/gustavooferreira/bfutils/horserace/conversion"
 )
 
 func main() {
@@ -170,7 +173,6 @@ func main() {
 		d, d.Miles, d.Furlongs, d.Yards)
 	fmt.Printf("This race distance in meters is: %.2f\n", d.ToMeters())
 }
-
 ```
 
 ---
@@ -186,7 +188,7 @@ This will then make the following packages available to you:
     github.com/gustavooferreira/bfutils
     github.com/gustavooferreira/bfutils/betting
     github.com/gustavooferreira/bfutils/horserace
-    github.com/gustavooferreira/bfutils/conversion
+    github.com/gustavooferreira/bfutils/horserace/conversion
 
 Import the `bfutils/betting` package into your code using this template:
 

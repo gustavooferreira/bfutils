@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/gustavooferreira/bfutils"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -11,6 +12,7 @@ import (
 func TestOddsSize(t *testing.T) {
 	OddsLen := len(bfutils.Odds)
 	OddsStrLen := len(bfutils.OddsStr)
+	OddsDecimalLen := len(bfutils.Odds)
 
 	t.Run("Odds array length equal to OddsCount", func(t *testing.T) {
 		assert.Equal(t, bfutils.OddsCount, OddsLen)
@@ -19,22 +21,26 @@ func TestOddsSize(t *testing.T) {
 	t.Run("OddsStr array length equal to OddsCount", func(t *testing.T) {
 		assert.Equal(t, bfutils.OddsCount, OddsStrLen)
 	})
+
+	t.Run("OddsDecimal array length equal to OddsCount", func(t *testing.T) {
+		assert.Equal(t, bfutils.OddsCount, OddsDecimalLen)
+	})
 }
 
-func TestOddExists(t *testing.T) {
+func TestOddsDecimal(t *testing.T) {
 	tests := map[string]struct {
 		index    int
-		expected float64
+		expected decimal.Decimal
 	}{
-		"odd[1.01] exists": {index: 0, expected: 1.01},
-		"odd[1.1] exists":  {index: 9, expected: 1.1},
-		"odd[2] exists":    {index: 99, expected: 2},
-		"odd[510] exists":  {index: 300, expected: 510},
+		"odd[1.01] exists": {index: 0, expected: decimal.RequireFromString("1.01")},
+		"odd[1.1] exists":  {index: 9, expected: decimal.RequireFromString("1.1")},
+		"odd[2] exists":    {index: 99, expected: decimal.RequireFromString("2")},
+		"odd[510] exists":  {index: 300, expected: decimal.RequireFromString("510")},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, test.expected, bfutils.Odds[test.index])
+			assert.True(t, test.expected.Equal(bfutils.Odds[test.index]))
 		})
 	}
 }
@@ -42,12 +48,12 @@ func TestOddExists(t *testing.T) {
 func TestOddRange(t *testing.T) {
 	tests := map[string]struct {
 		index         int
-		expectedBegin float64
-		expectedEnd   float64
+		expectedBegin string
+		expectedEnd   string
 	}{
-		"odd range [0] boundaries": {index: 0, expectedBegin: 1.01, expectedEnd: 2.0},
-		"odd range [3] boundaries": {index: 3, expectedBegin: 4.1, expectedEnd: 6.0},
-		"odd range [9] boundaries": {index: 9, expectedBegin: 110, expectedEnd: 1000},
+		"odd range [0] boundaries": {index: 0, expectedBegin: "1.01", expectedEnd: "2"},
+		"odd range [3] boundaries": {index: 3, expectedBegin: "4.1", expectedEnd: "6"},
+		"odd range [9] boundaries": {index: 9, expectedBegin: "110", expectedEnd: "1000"},
 	}
 
 	for name, test := range tests {
@@ -60,26 +66,28 @@ func TestOddRange(t *testing.T) {
 
 func TestOddFloor(t *testing.T) {
 	tests := map[string]struct {
-		odd           float64
+		odd           decimal.Decimal
 		expectedIndex int
-		expectedOdd   float64
+		expectedOdd   decimal.Decimal
 		expectedErr   bool
 	}{
 		// Boundary tests
-		"odd[-1] match":    {odd: -1, expectedErr: true},
-		"odd[0] match":     {odd: 0, expectedErr: true},
-		"odd[1] match":     {odd: 1, expectedErr: true},
-		"odd[99999] match": {odd: 99999, expectedErr: true},
+		"odd[-1] match":    {odd: decimal.RequireFromString("-1"), expectedErr: true},
+		"odd[0] match":     {odd: decimal.RequireFromString("0"), expectedErr: true},
+		"odd[1] match":     {odd: decimal.RequireFromString("1"), expectedErr: true},
+		"odd[99999] match": {odd: decimal.RequireFromString("99999"), expectedErr: true},
 
-		"odd[1.01] match": {odd: 1.01, expectedIndex: 0, expectedOdd: 1.01},
-		"odd[1000] match": {odd: 1000, expectedIndex: 349, expectedOdd: 1000},
+		"odd[1.01] match":    {odd: decimal.RequireFromString("1.01"), expectedIndex: 0, expectedOdd: decimal.RequireFromString("1.01")},
+		"odd[1000] match":    {odd: decimal.RequireFromString("1000"), expectedIndex: 349, expectedOdd: decimal.RequireFromString("1000")},
+		"odd[1.0100] match":  {odd: decimal.RequireFromString("1.0100"), expectedIndex: 0, expectedOdd: decimal.RequireFromString("1.01")},
+		"odd[1000.00] match": {odd: decimal.RequireFromString("1000.00"), expectedIndex: 349, expectedOdd: decimal.RequireFromString("1000")},
 
-		"odd[3.2552321] match":      {odd: 3.2552321, expectedIndex: 154, expectedOdd: 3.25},
-		"odd[3.299999999999] match": {odd: 3.299999999999, expectedIndex: 155, expectedOdd: 3.3},
+		"odd[3.2552321] match":      {odd: decimal.RequireFromString("3.2552321"), expectedIndex: 154, expectedOdd: decimal.RequireFromString("3.25")},
+		"odd[3.299999999999] match": {odd: decimal.RequireFromString("3.299999999999"), expectedIndex: 154, expectedOdd: decimal.RequireFromString("3.25")},
 
-		"odd[2.0] match":  {odd: 2.0, expectedIndex: 99, expectedOdd: 2.0},
-		"odd[4.05] match": {odd: 4.05, expectedIndex: 169, expectedOdd: 4.0},
-		"odd[33] match":   {odd: 33, expectedIndex: 240, expectedOdd: 32},
+		"odd[2.0] match":  {odd: decimal.RequireFromString("2.0"), expectedIndex: 99, expectedOdd: decimal.RequireFromString("2.0")},
+		"odd[4.05] match": {odd: decimal.RequireFromString("4.05"), expectedIndex: 169, expectedOdd: decimal.RequireFromString("4.0")},
+		"odd[33] match":   {odd: decimal.RequireFromString("33"), expectedIndex: 240, expectedOdd: decimal.RequireFromString("32")},
 	}
 
 	for name, test := range tests {
@@ -92,33 +100,35 @@ func TestOddFloor(t *testing.T) {
 
 			require.Equal(t, test.expectedErr, errBool)
 			assert.Equal(t, test.expectedIndex, index)
-			assert.Equal(t, test.expectedOdd, odd)
+			assert.True(t, test.expectedOdd.Equal(odd))
 		})
 	}
 }
 
 func TestOddCeil(t *testing.T) {
 	tests := map[string]struct {
-		odd           float64
+		odd           decimal.Decimal
 		expectedIndex int
-		expectedOdd   float64
+		expectedOdd   decimal.Decimal
 		expectedErr   bool
 	}{
 		// Boundary tests
-		"odd[-1] match":    {odd: -1, expectedErr: true},
-		"odd[0] match":     {odd: 0, expectedErr: true},
-		"odd[1] match":     {odd: 1, expectedErr: true},
-		"odd[99999] match": {odd: 99999, expectedErr: true},
+		"odd[-1] match":    {odd: decimal.RequireFromString("-1"), expectedErr: true},
+		"odd[0] match":     {odd: decimal.RequireFromString("0"), expectedErr: true},
+		"odd[1] match":     {odd: decimal.RequireFromString("1"), expectedErr: true},
+		"odd[99999] match": {odd: decimal.RequireFromString("99999"), expectedErr: true},
 
-		"odd[1.01] match": {odd: 1.01, expectedIndex: 0, expectedOdd: 1.01},
-		"odd[1000] match": {odd: 1000, expectedIndex: 349, expectedOdd: 1000},
+		"odd[1.01] match":    {odd: decimal.RequireFromString("1.01"), expectedIndex: 0, expectedOdd: decimal.RequireFromString("1.01")},
+		"odd[1000] match":    {odd: decimal.RequireFromString("1000"), expectedIndex: 349, expectedOdd: decimal.RequireFromString("1000")},
+		"odd[1.0100] match":  {odd: decimal.RequireFromString("1.0100"), expectedIndex: 0, expectedOdd: decimal.RequireFromString("1.01")},
+		"odd[1000.00] match": {odd: decimal.RequireFromString("1000.00"), expectedIndex: 349, expectedOdd: decimal.RequireFromString("1000")},
 
-		"odd[3.2552321] match":      {odd: 3.2552321, expectedIndex: 155, expectedOdd: 3.3},
-		"odd[3.249999999999] match": {odd: 3.249999999999, expectedIndex: 154, expectedOdd: 3.25},
+		"odd[3.2552321] match":      {odd: decimal.RequireFromString("3.2552321"), expectedIndex: 155, expectedOdd: decimal.RequireFromString("3.3")},
+		"odd[3.249999999999] match": {odd: decimal.RequireFromString("3.249999999999"), expectedIndex: 154, expectedOdd: decimal.RequireFromString("3.25")},
 
-		"odd[2.0] match":  {odd: 2.0, expectedIndex: 99, expectedOdd: 2.0},
-		"odd[4.05] match": {odd: 4.05, expectedIndex: 170, expectedOdd: 4.1},
-		"odd[33] match":   {odd: 33, expectedIndex: 241, expectedOdd: 34},
+		"odd[2.0] match":  {odd: decimal.RequireFromString("2.0"), expectedIndex: 99, expectedOdd: decimal.RequireFromString("2.0")},
+		"odd[4.05] match": {odd: decimal.RequireFromString("4.05"), expectedIndex: 170, expectedOdd: decimal.RequireFromString("4.1")},
+		"odd[33] match":   {odd: decimal.RequireFromString("33"), expectedIndex: 241, expectedOdd: decimal.RequireFromString("34")},
 	}
 
 	for name, test := range tests {
@@ -131,33 +141,36 @@ func TestOddCeil(t *testing.T) {
 
 			require.Equal(t, test.expectedErr, errBool)
 			assert.Equal(t, test.expectedIndex, index)
-			assert.Equal(t, test.expectedOdd, odd)
+			assert.True(t, test.expectedOdd.Equal(odd))
 		})
 	}
 }
 
 func TestOddRound(t *testing.T) {
 	tests := map[string]struct {
-		odd           float64
+		odd           decimal.Decimal
 		expectedIndex int
-		expectedOdd   float64
+		expectedOdd   decimal.Decimal
 		expectedErr   bool
 	}{
 		// Boundary tests
-		"odd[-1] match":    {odd: -1, expectedErr: true},
-		"odd[0] match":     {odd: 0, expectedErr: true},
-		"odd[1] match":     {odd: 1, expectedErr: true},
-		"odd[99999] match": {odd: 99999, expectedErr: true},
+		"odd[-1] match":    {odd: decimal.RequireFromString("-1"), expectedErr: true},
+		"odd[0] match":     {odd: decimal.RequireFromString("0"), expectedErr: true},
+		"odd[1] match":     {odd: decimal.RequireFromString("1"), expectedErr: true},
+		"odd[99999] match": {odd: decimal.RequireFromString("99999"), expectedErr: true},
 
-		"odd[1.01] match": {odd: 1.01, expectedIndex: 0, expectedOdd: 1.01},
-		"odd[1000] match": {odd: 1000, expectedIndex: 349, expectedOdd: 1000},
+		"odd[1.01] match":    {odd: decimal.RequireFromString("1.01"), expectedIndex: 0, expectedOdd: decimal.RequireFromString("1.01")},
+		"odd[1000] match":    {odd: decimal.RequireFromString("1000"), expectedIndex: 349, expectedOdd: decimal.RequireFromString("1000")},
+		"odd[1.0100] match":  {odd: decimal.RequireFromString("1.0100"), expectedIndex: 0, expectedOdd: decimal.RequireFromString("1.01")},
+		"odd[1000.00] match": {odd: decimal.RequireFromString("1000.00"), expectedIndex: 349, expectedOdd: decimal.RequireFromString("1000")},
 
-		"odd[3.2552321] match":      {odd: 3.2552321, expectedIndex: 154, expectedOdd: 3.25},
-		"odd[3.249999999999] match": {odd: 3.249999999999, expectedIndex: 154, expectedOdd: 3.25},
+		"odd[3.2552321] match":      {odd: decimal.RequireFromString("3.2552321"), expectedIndex: 154, expectedOdd: decimal.RequireFromString("3.25")},
+		"odd[3.249999999999] match": {odd: decimal.RequireFromString("3.249999999999"), expectedIndex: 154, expectedOdd: decimal.RequireFromString("3.25")},
 
-		"odd[2.0] match":   {odd: 2.0, expectedIndex: 99, expectedOdd: 2.0},
-		"odd[4.077] match": {odd: 4.077, expectedIndex: 170, expectedOdd: 4.1},
-		"odd[32.9] match":  {odd: 32.9, expectedIndex: 240, expectedOdd: 32},
+		"odd[21.05] match": {odd: decimal.RequireFromString("21.05"), expectedIndex: 230, expectedOdd: decimal.RequireFromString("21")},
+		"odd[2.0] match":   {odd: decimal.RequireFromString("2.0"), expectedIndex: 99, expectedOdd: decimal.RequireFromString("2.0")},
+		"odd[4.077] match": {odd: decimal.RequireFromString("4.077"), expectedIndex: 170, expectedOdd: decimal.RequireFromString("4.1")},
+		"odd[32.9] match":  {odd: decimal.RequireFromString("32.9"), expectedIndex: 240, expectedOdd: decimal.RequireFromString("32")},
 	}
 
 	for name, test := range tests {
@@ -170,7 +183,7 @@ func TestOddRound(t *testing.T) {
 
 			require.Equal(t, test.expectedErr, errBool)
 			assert.Equal(t, test.expectedIndex, index)
-			assert.Equal(t, test.expectedOdd, odd)
+			assert.True(t, test.expectedOdd.Equal(odd))
 		})
 	}
 }
@@ -178,22 +191,22 @@ func TestOddRound(t *testing.T) {
 func TestOddShift(t *testing.T) {
 	tests := map[string]struct {
 		roundType     bfutils.RoundType
-		odd           float64
+		odd           decimal.Decimal
 		shift         int
 		expectedIndex int
-		expectedOdd   float64
+		expectedOdd   decimal.Decimal
 		expectedErr   bool
 	}{
 		// Boundary tests
-		"odd[-1] shift":       {odd: -1, expectedErr: true},
-		"odd[0] shift":        {odd: 0, expectedErr: true},
-		"odd[1] shift":        {odd: 1, expectedErr: true},
-		"odd[99999] shift":    {odd: 99999, expectedErr: true},
-		"odd[10, 1000] shift": {roundType: bfutils.RoundType_Ceil, odd: 10, shift: 1000, expectedErr: true},
+		"odd[-1] shift":       {odd: decimal.RequireFromString("-1"), expectedErr: true},
+		"odd[0] shift":        {odd: decimal.RequireFromString("0"), expectedErr: true},
+		"odd[1] shift":        {odd: decimal.RequireFromString("1"), expectedErr: true},
+		"odd[99999] shift":    {odd: decimal.RequireFromString("99999"), expectedErr: true},
+		"odd[10, 1000] shift": {roundType: bfutils.RoundType_Ceil, odd: decimal.RequireFromString("10"), shift: 1000, expectedErr: true},
 
-		"odd[1.01, 3] shift": {roundType: bfutils.RoundType_Round, odd: 1.01, shift: 3, expectedIndex: 3, expectedOdd: 1.04},
-		"odd[4, -10] shift":  {roundType: bfutils.RoundType_Ceil, odd: 4, shift: -10, expectedIndex: 159, expectedOdd: 3.5},
-		"odd[10, 5] shift":   {roundType: bfutils.RoundType_Floor, odd: 10, shift: 5, expectedIndex: 214, expectedOdd: 12.5},
+		"odd[1.01, 3] shift": {roundType: bfutils.RoundType_Round, odd: decimal.RequireFromString("1.01"), shift: 3, expectedIndex: 3, expectedOdd: decimal.RequireFromString("1.04")},
+		"odd[4, -10] shift":  {roundType: bfutils.RoundType_Ceil, odd: decimal.RequireFromString("4"), shift: -10, expectedIndex: 159, expectedOdd: decimal.RequireFromString("3.5")},
+		"odd[10, 5] shift":   {roundType: bfutils.RoundType_Floor, odd: decimal.RequireFromString("10"), shift: 5, expectedIndex: 214, expectedOdd: decimal.RequireFromString("12.5")},
 	}
 
 	for name, test := range tests {
@@ -206,7 +219,7 @@ func TestOddShift(t *testing.T) {
 
 			require.Equal(t, test.expectedErr, errBool)
 			assert.Equal(t, test.expectedIndex, index)
-			assert.Equal(t, test.expectedOdd, odd)
+			assert.True(t, test.expectedOdd.Equal(odd))
 		})
 	}
 }
@@ -214,20 +227,20 @@ func TestOddShift(t *testing.T) {
 func TestOddsTicksDiff(t *testing.T) {
 	tests := map[string]struct {
 		roundType    bfutils.RoundType
-		odd1         float64
-		odd2         float64
+		odd1         decimal.Decimal
+		odd2         decimal.Decimal
 		expectedDiff int
 		expectedErr  bool
 	}{
 		// Boundary tests
-		"odds[-1, 10] tick diff":    {odd1: -1, odd2: 10, expectedErr: true},
-		"odds[0, 5] tick diff":      {odd1: 0, odd2: 5, expectedErr: true},
-		"odds[50, 1] tick diff":     {odd1: 50, odd2: 1, expectedErr: true},
-		"odds[10, 99999] tick diff": {odd1: 10, odd2: 99999, expectedErr: true},
+		"odds[-1, 10] tick diff":    {odd1: decimal.RequireFromString("-1"), odd2: decimal.RequireFromString("10"), expectedErr: true},
+		"odds[0, 5] tick diff":      {odd1: decimal.RequireFromString("0"), odd2: decimal.RequireFromString("5"), expectedErr: true},
+		"odds[50, 1] tick diff":     {odd1: decimal.RequireFromString("50"), odd2: decimal.RequireFromString("1"), expectedErr: true},
+		"odds[10, 99999] tick diff": {odd1: decimal.RequireFromString("10"), odd2: decimal.RequireFromString("99999"), expectedErr: true},
 
-		"odds[1.01, 3] tick diff": {roundType: bfutils.RoundType_Round, odd1: 1.01, odd2: 3, expectedDiff: 149},
-		"odds[4, 4.5] tick diff":  {roundType: bfutils.RoundType_Ceil, odd1: 4, odd2: 4.5, expectedDiff: 5},
-		"odds[10, 5] tick diff":   {roundType: bfutils.RoundType_Floor, odd1: 10, odd2: 5, expectedDiff: 30},
+		"odds[1.01, 3] tick diff": {roundType: bfutils.RoundType_Round, odd1: decimal.RequireFromString("1.01"), odd2: decimal.RequireFromString("3"), expectedDiff: 149},
+		"odds[4, 4.5] tick diff":  {roundType: bfutils.RoundType_Ceil, odd1: decimal.RequireFromString("4"), odd2: decimal.RequireFromString("4.5"), expectedDiff: 5},
+		"odds[10, 5] tick diff":   {roundType: bfutils.RoundType_Floor, odd1: decimal.RequireFromString("10"), odd2: decimal.RequireFromString("5"), expectedDiff: 30},
 	}
 
 	for name, test := range tests {
@@ -246,17 +259,17 @@ func TestOddsTicksDiff(t *testing.T) {
 
 func TestOddWithinBoundaries(t *testing.T) {
 	tests := map[string]struct {
-		odd      float64
+		odd      decimal.Decimal
 		expected bool
 	}{
 		// Boundary tests
-		"odds[-1] boundary check":   {odd: -1, expected: false},
-		"odds[0] boundary check":    {odd: 0, expected: false},
-		"odds[1] boundary check":    {odd: 1, expected: false},
-		"odds[1001] boundary check": {odd: 1001, expected: false},
+		"odds[-1] boundary check":   {odd: decimal.RequireFromString("-1"), expected: false},
+		"odds[0] boundary check":    {odd: decimal.RequireFromString("0"), expected: false},
+		"odds[1] boundary check":    {odd: decimal.RequireFromString("1"), expected: false},
+		"odds[1001] boundary check": {odd: decimal.RequireFromString("1001"), expected: false},
 
-		"odds[2.3] boundary check": {odd: 2.3, expected: true},
-		"odds[50] boundary check":  {odd: 50, expected: true},
+		"odds[2.3] boundary check": {odd: decimal.RequireFromString("2.3"), expected: true},
+		"odds[50] boundary check":  {odd: decimal.RequireFromString("50"), expected: true},
 	}
 
 	for name, test := range tests {
