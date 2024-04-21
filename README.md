@@ -37,21 +37,21 @@ import (
 func main() {
     randomOdd := 4.051
 
-    index1, odd1, err := bfutils.OddShift(bfutils.RoundType_Floor, randomOdd, 10)
+    index1, odd1, err := bfutils.OddShift(randomOdd, 10, bfutils.RoundType_Floor)
     if err != nil {
         panic(err)
     }
 
     fmt.Printf("Odd1: %.2f - position in the ladder: %d\n", odd1, index1+1)
 
-    index2, odd2, err := bfutils.OddShift(bfutils.RoundType_Floor, randomOdd, -10)
+    index2, odd2, err := bfutils.OddShift(randomOdd, -10, bfutils.RoundType_Floor)
     if err != nil {
         panic(err)
     }
 
     fmt.Printf("Odd2: %.2f - position in the ladder: %d\n", odd2, index2+1)
 
-    ticksDiff, err := bfutils.OddsTicksDiff(bfutils.RoundType_Floor, odd1, odd2)
+    ticksDiff, err := bfutils.OddsTicksDiff(odd1, odd2, bfutils.RoundType_Floor)
     if err != nil {
         panic(err)
     }
@@ -82,29 +82,29 @@ import (
 )
 
 func main() {
-	selection := betting.Selection{
-		Bets: []betting.Bet{
-			{Type: betting.BetType_Back, Odd: 4, Amount: 5},
-			{Type: betting.BetType_Lay, Odd: 3, Amount: 5},
-			{Type: betting.BetType_Back, Odd: 3.5, Amount: 10},
-			{Type: betting.BetType_Lay, Odd: 3.2, Amount: 10},
-		},
-		CurrentBackOdd: 2.4,
-		CurrentLayOdd:  2.42,
-	}
+ selection := betting.Selection{
+  Bets: []betting.Bet{
+   {Type: betting.BetType_Back, Odd: 4, Amount: 5},
+   {Type: betting.BetType_Lay, Odd: 3, Amount: 5},
+   {Type: betting.BetType_Back, Odd: 3.5, Amount: 10},
+   {Type: betting.BetType_Lay, Odd: 3.2, Amount: 10},
+  },
+  CurrentBackOdd: 2.4,
+  CurrentLayOdd:  2.42,
+ }
 
-	bet, err := betting.GreenBookSelection(selection)
-	if err != nil {
-		panic(err)
-	}
+ bet, err := betting.GreenBookSelection(selection)
+ if err != nil {
+  panic(err)
+ }
 
-	fmt.Printf("In order to green book this selection, put a {%s} bet at {%.2f} for £%.2f.\n",
-		bet.Type, bet.Odd, bet.Amount)
+ fmt.Printf("In order to green book this selection, put a {%s} bet at {%.2f} for £%.2f.\n",
+  bet.Type, bet.Odd, bet.Amount)
 
-	fmt.Printf("P&L\n")
-	fmt.Printf("---\n")
-	fmt.Printf("If this selection wins:  £%.2f\n", bet.WinPL)
-	fmt.Printf("If this selection loses: £%.2f\n", bet.LosePL)
+ fmt.Printf("P&L\n")
+ fmt.Printf("---\n")
+ fmt.Printf("If this selection wins:  £%.2f\n", bet.WinPL)
+ fmt.Printf("If this selection loses: £%.2f\n", bet.LosePL)
 }
 
 ```
@@ -127,16 +127,16 @@ import (
 )
 
 func main() {
-	raceBetfairName := "2m3f Hcap"
+ raceBetfairName := "2m3f Hcap"
 
-	name, distance := horserace.GetClassAndDistance(raceBetfairName)
-	class, err := horserace.GetClassificationFromAbbrev(name)
-	if err != nil {
-		panic(err)
-	}
+ name, distance := horserace.GetClassAndDistance(raceBetfairName)
+ class, err := horserace.GetClassificationFromAbbrev(name)
+ if err != nil {
+  panic(err)
+ }
 
-	fmt.Printf("Race classification: %s\n", class)
-	fmt.Printf("Race distance: %s\n", distance)
+ fmt.Printf("Race classification: %s\n", class)
+ fmt.Printf("Race distance: %s\n", distance)
 }
 
 ```
@@ -159,16 +159,16 @@ import (
 )
 
 func main() {
-	raceDistance := "2m5f100y"
+ raceDistance := "2m5f100y"
 
-	d, err := conversion.ParseDistance(raceDistance)
-	if err != nil {
-		panic(err)
-	}
+ d, err := conversion.ParseDistance(raceDistance)
+ if err != nil {
+  panic(err)
+ }
 
-	fmt.Printf("This race distance [%s] has %d miles, %d furlongs and %d yards.\n",
-		d, d.Miles, d.Furlongs, d.Yards)
-	fmt.Printf("This race distance in meters is: %.2f\n", d.ToMeters())
+ fmt.Printf("This race distance [%s] has %d miles, %d furlongs and %d yards.\n",
+  d, d.Miles, d.Furlongs, d.Yards)
+ fmt.Printf("This race distance in meters is: %.2f\n", d.ToMeters())
 }
 
 ```
