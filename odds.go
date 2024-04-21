@@ -2,11 +2,15 @@
 package bfutils
 
 import (
+	"errors"
 	"fmt"
 	"math"
 
 	"github.com/gustavooferreira/bfutils/internal"
 )
+
+// ErrOddOutsideTradingRange is an error that is returned when the odd provided is outside of the trading range [1.01 - 1000].
+var ErrOddOutsideTradingRange = errors.New("odd is outside of the trading range")
 
 // OddsCount is a constant defining the number of available odds in the ladder.
 const OddsCount = 350
@@ -44,7 +48,8 @@ var Odds = [...]float64{
 	590, 600, 610, 620, 630, 640, 650, 660, 670, 680, 690, 700,
 	710, 720, 730, 740, 750, 760, 770, 780, 790, 800, 810, 820,
 	830, 840, 850, 860, 870, 880, 890, 900, 910, 920, 930, 940,
-	950, 960, 970, 980, 990, 1000}
+	950, 960, 970, 980, 990, 1000,
+}
 
 // OddsStr is an array of strings holding the value of all tradable odds.
 var OddsStr = [...]string{
@@ -79,25 +84,34 @@ var OddsStr = [...]string{
 	"590", "600", "610", "620", "630", "640", "650", "660", "670", "680", "690", "700",
 	"710", "720", "730", "740", "750", "760", "770", "780", "790", "800", "810", "820",
 	"830", "840", "850", "860", "870", "880", "890", "900", "910", "920", "930", "940",
-	"950", "960", "970", "980", "990", "1000"}
-
-// OddsRange is a map[string]float64 with all the odd ranges available.
-var OddsRange = []map[string]float64{
-	{"begin": 1.01, "end": 2, "var": 0.01, "ticks": 100},
-	{"begin": 2.02, "end": 3, "var": 0.02, "ticks": 50},
-	{"begin": 3.05, "end": 4, "var": 0.05, "ticks": 20},
-	{"begin": 4.1, "end": 6, "var": 0.1, "ticks": 20},
-	{"begin": 6.2, "end": 10, "var": 0.2, "ticks": 20},
-	{"begin": 10.5, "end": 20, "var": 0.5, "ticks": 20},
-	{"begin": 21, "end": 30, "var": 1, "ticks": 10},
-	{"begin": 32, "end": 50, "var": 2, "ticks": 10},
-	{"begin": 55, "end": 100, "var": 5, "ticks": 10},
-	{"begin": 110, "end": 1000, "var": 10, "ticks": 90},
+	"950", "960", "970", "980", "990", "1000",
 }
 
-// OddFloor returns the same odd input rounded towards 1.01.
+type LadderStepOddsRange struct {
+	Begin     float64
+	End       float64
+	Increment float64
+	Ticks     int
+}
+
+// OddsRangeTable is a table containing all the odds ranges available in the ladder.
+var OddsRangeTable = []LadderStepOddsRange{
+	{Begin: 1.01, End: 2, Increment: 0.01, Ticks: 100},
+	{Begin: 2.02, End: 3, Increment: 0.02, Ticks: 50},
+	{Begin: 3.05, End: 4, Increment: 0.05, Ticks: 20},
+	{Begin: 4.1, End: 6, Increment: 0.1, Ticks: 20},
+	{Begin: 6.2, End: 10, Increment: 0.2, Ticks: 20},
+	{Begin: 10.5, End: 20, Increment: 0.5, Ticks: 20},
+	{Begin: 21, End: 30, Increment: 1, Ticks: 10},
+	{Begin: 32, End: 50, Increment: 2, Ticks: 10},
+	{Begin: 55, End: 100, Increment: 5, Ticks: 10},
+	{Begin: 110, End: 1000, Increment: 10, Ticks: 90},
+}
+
+// OddFloor returns the nearest available odd rounded towards 1.01.
 // If the odd supplied is one of the available odds in the ladder, than the same odd is returned.
 // index returns the index of the odd in the ladder.
+// An error may be returned if the odd provided is outside of the tradable range [1.01 - 1000].
 func OddFloor(odd float64) (index int, oddRounded float64, err error) {
 	_, index, err = FindOdd(odd)
 	if err != nil {
@@ -107,9 +121,10 @@ func OddFloor(odd float64) (index int, oddRounded float64, err error) {
 	return index, Odds[index], nil
 }
 
-// OddCeil returns the same odd input rounded towards 1000.
+// OddCeil returns the nearest available odd rounded towards 1000.
 // If the odd supplied is one of the available odds in the ladder, than the same odd is returned.
 // index returns the index of the odd in the ladder.
+// An error may be returned if the odd provided is outside of the tradable range [1.01 - 1000].
 func OddCeil(odd float64) (index int, oddRounded float64, err error) {
 	match, index, err := FindOdd(odd)
 	if err != nil {
@@ -119,12 +134,15 @@ func OddCeil(odd float64) (index int, oddRounded float64, err error) {
 	if match {
 		return index, Odds[index], nil
 	}
+
+	// it's fine to do index+1, because we always get the odd to the left when finding the odd.
 	return index + 1, Odds[index+1], nil
 }
 
-// OddRound returns the same odd input rounded to the nearest odd in the ladder.
+// OddRound returns the nearest available odd rounded according to normal rounding rules.
 // If the odd supplied is one of the available odds in the ladder, than the same odd is returned.
 // index returns the index of the odd in the ladder.
+// An error may be returned if the odd provided is outside of the tradable range [1.01 - 1000].
 func OddRound(odd float64) (index int, oddRounded float64, err error) {
 	match, index, err := FindOdd(odd)
 	if err != nil {
@@ -142,6 +160,7 @@ func OddRound(odd float64) (index int, oddRounded float64, err error) {
 	if delta1 <= delta2 {
 		return index, Odds[index], nil
 	}
+
 	return index + 1, Odds[index+1], nil
 }
 
@@ -149,7 +168,8 @@ func OddRound(odd float64) (index int, oddRounded float64, err error) {
 // If shift is higher than zero, it shifts the odd towards 1000, if it's less than zero it shifts the odd towards 1.01.
 // roundType is the round method to be used.
 // shift represents the number of ticks to shift the odd.
-func OddShift(roundType RoundType, odd float64, shift int) (index int, oddOut float64, err error) {
+// An error may be returned if the odd provided is outside of the tradable range [1.01 - 1000].
+func OddShift(odd float64, shift int, roundType RoundType) (index int, oddOut float64, err error) {
 	switch roundType {
 	case RoundType_Ceil:
 		index, _, err = OddCeil(odd)
@@ -165,15 +185,17 @@ func OddShift(roundType RoundType, odd float64, shift int) (index int, oddOut fl
 
 	index += shift
 
-	if (index >= OddsCount) || (index < 0) {
-		return 0, 0, fmt.Errorf("odd outside of tradable range")
+	if (index < 0) || (index >= OddsCount) {
+		return 0, 0, fmt.Errorf("computed invalid odd [idx: %d]: %w", index, ErrOddOutsideTradingRange)
 	}
+
 	return index, Odds[index], nil
 }
 
 // OddsTicksDiff computes the number of ticks between two odds.
 // roundType is the round method to be used.
-func OddsTicksDiff(roundType RoundType, odd1 float64, odd2 float64) (ticksDiff int, err error) {
+// An error may be returned if the odd provided is outside of the tradable range [1.01 - 1000].
+func OddsTicksDiff(odd1 float64, odd2 float64, roundType RoundType) (ticksDiff int, err error) {
 	var index1 int
 	var index2 int
 	var err1 error
@@ -202,8 +224,7 @@ func OddsTicksDiff(roundType RoundType, odd1 float64, odd2 float64) (ticksDiff i
 	return int(math.Abs(float64(index2 - index1))), nil
 }
 
-// IsOddWithinBoundaries checks if odd is within trading range.
-// I.e., odd is between 1.01 and 1000.
+// IsOddWithinBoundaries checks if odd is within trading range, i.e., odd is between 1.01 and 1000.
 func IsOddWithinBoundaries(odd float64) bool {
 	if internal.EqualWithTolerance(odd, 1000) {
 		return true
@@ -223,10 +244,10 @@ func IsOddWithinBoundaries(odd float64) bool {
 // FindOdd tries to find the odd in the ladder.
 // If it finds it, then index is the odd index in the ladder.
 // If it doesn't find it, it will return the index in the ladder that is the closest to the odd on the left side.
+// An error may be returned if the odd provided is outside of the tradable range [1.01 - 1000].
 func FindOdd(odd float64) (match bool, index int, err error) {
-	// Boundaries
-	if withinBoundary := IsOddWithinBoundaries(odd); !withinBoundary {
-		return false, 0, fmt.Errorf("odd provided [%f] is outside of trading range", odd)
+	if ok := IsOddWithinBoundaries(odd); !ok {
+		return false, 0, ErrOddOutsideTradingRange
 	}
 
 	if internal.EqualWithTolerance(odd, 1000) {
@@ -234,6 +255,8 @@ func FindOdd(odd float64) (match bool, index int, err error) {
 	} else if internal.EqualWithTolerance(odd, 1.01) {
 		return true, 0, nil
 	}
+
+	// binary search
 
 	lo := 0
 	hi := OddsCount
@@ -257,11 +280,11 @@ func FindOdd(odd float64) (match bool, index int, err error) {
 type RoundType uint
 
 const (
-	// RoundType_Ceil round towards 1000.
+	// RoundType_Ceil rounds towards 1000.
 	RoundType_Ceil = iota
-	// RoundType_Round round to the nearest odd in the ladder.
+	// RoundType_Round rounds to the nearest odd in the ladder.
 	RoundType_Round
-	// RoundType_Floor round towards 1.01.
+	// RoundType_Floor rounds towards 1.01.
 	RoundType_Floor
 )
 

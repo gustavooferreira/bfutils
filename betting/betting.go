@@ -129,7 +129,7 @@ func GreenBookSelection(selection Selection) (bet Bet, err error) {
 	currentBackOdd := selection.CurrentBackOdd
 	currentLayOdd := selection.CurrentLayOdd
 
-	if bets == nil || len(bets) == 0 {
+	if len(bets) == 0 {
 		return bet, fmt.Errorf("no bets in this selection")
 	}
 
