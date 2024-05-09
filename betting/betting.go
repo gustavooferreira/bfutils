@@ -118,7 +118,7 @@ func SelectionIsEdged(bets []Bet) (bool, error) {
 	return false, nil
 }
 
-// GreenBookSelection computes what bet to make in order to greenbook a selection.
+// GreenBookSelection computes what bet to make in order to achieve a greenbook in that selection.
 func GreenBookSelection(selection Selection) (bet Bet, err error) {
 	layAvgOdd := 0.0
 	layAmount := 0.0
@@ -203,7 +203,7 @@ func GreenBookSelection(selection Selection) (bet Bet, err error) {
 // 	return
 // }
 
-// GreenBookAtAllOdds returns the ladder with P&L and volumed matched by bets.
+// GreenBookAtAllOdds returns the ladder with P&L and volume matched by bets.
 func GreenBookAtAllOdds(bets []Bet) ([]LadderStep, error) {
 	layAvgOdd := 0.0
 	layAmount := 0.0
