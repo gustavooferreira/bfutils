@@ -6,8 +6,8 @@ import (
 	"github.com/gustavooferreira/bfutils/conversion"
 )
 
-// This example parses a horse race's distance and then prints a human friendly
-// message showing the distance. It also converts the distance into meters.
+// This example parses a horse race's distance and then prints a human friendly message showing the distance.
+// It also converts the distance into meters.
 func Example_a() {
 	raceDistance := "2m5f100y"
 

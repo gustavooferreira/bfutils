@@ -26,7 +26,7 @@ type Selection struct {
 	CurrentLayOdd float64
 }
 
-// LadderStep represents a trading ladder.
+// LadderStep represents a step in the trading ladder for a given selection.
 type LadderStep struct {
 	// Odd in the market.
 	Odd float64
