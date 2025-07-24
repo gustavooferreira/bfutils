@@ -5,7 +5,12 @@ build:
 
 .PHONY: test
 test:
-	@go test ./...
+	@go test -race -count 1 -v ./...
+
+
+.PHONY: generate
+generate:
+	@go generate ./...
 
 
 .PHONY: coverage

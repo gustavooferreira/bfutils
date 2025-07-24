@@ -10,21 +10,26 @@ import (
 func Example_a() {
 	randomOdd := 4.051
 
-	index1, odd1, err := bfutils.OddShift(bfutils.RoundType_Floor, randomOdd, 10)
+	_, fixedOdd, err := bfutils.OddFloor(randomOdd)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Printf("Odd1: %.2f - position in the ladder: %d\n", odd1, index1+1)
-
-	index2, odd2, err := bfutils.OddShift(bfutils.RoundType_Floor, randomOdd, -10)
+	index1, odd1, err := bfutils.OddShift(fixedOdd, 10)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Printf("Odd2: %.2f - position in the ladder: %d\n", odd2, index2+1)
+	fmt.Printf("Odd1: %.2f - position in the ladder: %d\n", bfutils.Odds[index1], index1+1)
 
-	ticksDiff, err := bfutils.OddsTicksDiff(bfutils.RoundType_Floor, odd1, odd2)
+	index2, odd2, err := bfutils.OddShift(fixedOdd, -10)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Odd2: %.2f - position in the ladder: %d\n", bfutils.Odds[index2], index2+1)
+
+	ticksDiff, err := bfutils.OddsTicksDiff(odd1, odd2)
 	if err != nil {
 		panic(err)
 	}

@@ -1,15 +1,164 @@
-// Package bfutils provides a set of utility functions that help with day to day automation in the Betfair exchange
+// Package bfutils provides a set of utility functions that help with day to day automation in the Betfair exchange.
 package bfutils
 
 import (
 	"fmt"
-	"math"
-
-	"github.com/gustavooferreira/bfutils/internal"
 )
+
+// Odd represents an odd.
+type Odd struct {
+	// Index is the index of the odd in the ladder, starting from 0.
+	Index int
+	// Fixed is the odd represented as an FixedOdd (integer).
+	Fixed FixedOdd
+	// Float is the odd represented as a float64.
+	Float float64
+	// String is the odd represented as a string, e.g., "1.01", "2.5", etc.
+	String string
+}
+
+// OddFromIndex returns an Odd from the given index.
+func OddFromIndex(index int) (Odd, error) {
+	if index < 0 || index >= OddsCount {
+		return Odd{}, fmt.Errorf("index out of bounds: %d", index)
+	}
+
+	return Odd{
+		Index:  index,
+		Fixed:  OddsFixed[index],
+		Float:  Odds[index],
+		String: OddsStr[index],
+	}, nil
+}
+
+// OddFromFixedOdd returns an Odd from the given odd string.
+func OddFromString(odd string) (Odd, error) {
+	index, ok := FindStrOdd(odd)
+	if !ok {
+		return Odd{}, fmt.Errorf("string odd does not represent a valid odd")
+	}
+
+	return OddFromIndex(index)
+}
+
+// OddFromFixed returns an Odd from the given float odd.
+func OddFromFloat(odd float64) (Odd, error) {
+	match, index, err := FindOdd(odd)
+	if err != nil {
+		return Odd{}, err
+	}
+
+	if !match {
+		return Odd{}, fmt.Errorf("odd not valid")
+	}
+
+	return OddFromIndex(index)
+}
+
+// OddFromFixedOdd returns an Odd from the given fixed odd.
+func OddFromFixedOdd(odd FixedOdd) (Odd, error) {
+	index, ok := FindFixedOdd(odd)
+	if !ok {
+		return Odd{}, fmt.Errorf("fixed odd does not represent a valid odd")
+	}
+
+	return OddFromIndex(index)
+}
+
+// OddRange represents a range of odds.
+type OddRange struct {
+	// Begin is the first odd in the range of odds.
+	Begin Odd
+	// End is the last odd in the range of odds.
+	End Odd
+	// Increment is the increment for the odd in this range, e.g., "0.01", "0.02", "0.05", etc.
+	Increment OddIncrement
+	// TicksCount is the number of ticks in the range.
+	TicksCount int
+}
+
+// OddIncrement represents the increment of odds in a range.
+// The increments are stored as integers scaled by a factor of 100. An increment of 0.02 in the range 2.02 to 3 is
+// represented as the integer 2.
+type OddIncrement int
+
+// FixedOdd is an integer type that represents odds as fixed-point numbers.
+// Odds are stored as integers scaled by a factor of 100, e.g., 1.01 is represented as 101 integer, and 50.0 is
+// represented as 5000 integer.
+type FixedOdd int
+
+// ToOdd converts a FixedOdd to an Odd without looking it up to check if it's valid.
+func (o FixedOdd) ToOdd() Odd {
+	floatOdd := ConvertFixedToFloatOdd(o)
+	return Odd{
+		Index:  -1,
+		Fixed:  o,
+		Float:  floatOdd,
+		String: fmt.Sprintf("%.2f", floatOdd),
+	}
+}
+
+// ToOddWithLookup converts a FixedOdd to an Odd, looking it up to check if it's valid.
+func (o FixedOdd) ToOddWithLookup() (Odd, error) {
+	index, ok := FindFixedOdd(o)
+	if !ok {
+		return Odd{}, fmt.Errorf("fixed odd does not represent a valid odd")
+	}
+
+	return Odd{
+		Index:  index,
+		Fixed:  o,
+		Float:  Odds[index],
+		String: OddsStr[index],
+	}, nil
+}
+
+// ConvertFixedToFloat converts a FixedOdd to an odd represented as float64.
+func ConvertFixedToFloatOdd(odd FixedOdd) float64 {
+	return float64(odd) / 100.0
+}
 
 // OddsCount is a constant defining the number of available odds in the ladder.
 const OddsCount = 350
+
+// OddsFixed is an array of FixedOdd holding the value of all tradable odds.
+var OddsFixed = [...]FixedOdd{
+	101, 102, 103, 104, 105, 106, 107, 108, 109, 110,
+	111, 112, 113, 114, 115, 116, 117, 118, 119, 120,
+	121, 122, 123, 124, 125, 126, 127, 128, 129, 130,
+	131, 132, 133, 134, 135, 136, 137, 138, 139, 140,
+	141, 142, 143, 144, 145, 146, 147, 148, 149, 150,
+	151, 152, 153, 154, 155, 156, 157, 158, 159, 160,
+	161, 162, 163, 164, 165, 166, 167, 168, 169, 170,
+	171, 172, 173, 174, 175, 176, 177, 178, 179, 180,
+	181, 182, 183, 184, 185, 186, 187, 188, 189, 190,
+	191, 192, 193, 194, 195, 196, 197, 198, 199, 200,
+	202, 204, 206, 208, 210, 212, 214, 216, 218, 220,
+	222, 224, 226, 228, 230, 232, 234, 236, 238, 240,
+	242, 244, 246, 248, 250, 252, 254, 256, 258, 260,
+	262, 264, 266, 268, 270, 272, 274, 276, 278, 280,
+	282, 284, 286, 288, 290, 292, 294, 296, 298, 300,
+	305, 310, 315, 320, 325, 330, 335, 340, 345, 350,
+	355, 360, 365, 370, 375, 380, 385, 390, 395, 400,
+	410, 420, 430, 440, 450, 460, 470, 480, 490, 500,
+	510, 520, 530, 540, 550, 560, 570, 580, 590, 600,
+	620, 640, 660, 680, 700, 720, 740, 760, 780, 800,
+	820, 840, 860, 880, 900, 920, 940, 960, 980, 1000,
+	1050, 1100, 1150, 1200, 1250, 1300, 1350, 1400, 1450, 1500,
+	1550, 1600, 1650, 1700, 1750, 1800, 1850, 1900, 1950, 2000,
+	2100, 2200, 2300, 2400, 2500, 2600, 2700, 2800, 2900, 3000,
+	3200, 3400, 3600, 3800, 4000, 4200, 4400, 4600, 4800, 5000,
+	5500, 6000, 6500, 7000, 7500, 8000, 8500, 9000, 9500, 10000,
+	11000, 12000, 13000, 14000, 15000, 16000, 17000, 18000, 19000, 20000,
+	21000, 22000, 23000, 24000, 25000, 26000, 27000, 28000, 29000, 30000,
+	31000, 32000, 33000, 34000, 35000, 36000, 37000, 38000, 39000, 40000,
+	41000, 42000, 43000, 44000, 45000, 46000, 47000, 48000, 49000, 50000,
+	51000, 52000, 53000, 54000, 55000, 56000, 57000, 58000, 59000, 60000,
+	61000, 62000, 63000, 64000, 65000, 66000, 67000, 68000, 69000, 70000,
+	71000, 72000, 73000, 74000, 75000, 76000, 77000, 78000, 79000, 80000,
+	81000, 82000, 83000, 84000, 85000, 86000, 87000, 88000, 89000, 90000,
+	91000, 92000, 93000, 94000, 95000, 96000, 97000, 98000, 99000, 100000,
+}
 
 // Odds is an array of float64 holding the value of all tradable odds.
 var Odds = [...]float64{
@@ -44,7 +193,8 @@ var Odds = [...]float64{
 	590, 600, 610, 620, 630, 640, 650, 660, 670, 680, 690, 700,
 	710, 720, 730, 740, 750, 760, 770, 780, 790, 800, 810, 820,
 	830, 840, 850, 860, 870, 880, 890, 900, 910, 920, 930, 940,
-	950, 960, 970, 980, 990, 1000}
+	950, 960, 970, 980, 990, 1000,
+}
 
 // OddsStr is an array of strings holding the value of all tradable odds.
 var OddsStr = [...]string{
@@ -79,192 +229,69 @@ var OddsStr = [...]string{
 	"590", "600", "610", "620", "630", "640", "650", "660", "670", "680", "690", "700",
 	"710", "720", "730", "740", "750", "760", "770", "780", "790", "800", "810", "820",
 	"830", "840", "850", "860", "870", "880", "890", "900", "910", "920", "930", "940",
-	"950", "960", "970", "980", "990", "1000"}
-
-// OddsRange is a map[string]float64 with all the odd ranges available.
-var OddsRange = []map[string]float64{
-	{"begin": 1.01, "end": 2, "var": 0.01, "ticks": 100},
-	{"begin": 2.02, "end": 3, "var": 0.02, "ticks": 50},
-	{"begin": 3.05, "end": 4, "var": 0.05, "ticks": 20},
-	{"begin": 4.1, "end": 6, "var": 0.1, "ticks": 20},
-	{"begin": 6.2, "end": 10, "var": 0.2, "ticks": 20},
-	{"begin": 10.5, "end": 20, "var": 0.5, "ticks": 20},
-	{"begin": 21, "end": 30, "var": 1, "ticks": 10},
-	{"begin": 32, "end": 50, "var": 2, "ticks": 10},
-	{"begin": 55, "end": 100, "var": 5, "ticks": 10},
-	{"begin": 110, "end": 1000, "var": 10, "ticks": 90},
+	"950", "960", "970", "980", "990", "1000",
 }
 
-// OddFloor returns the same odd input rounded towards 1.01.
-// If the odd supplied is one of the available odds in the ladder, than the same odd is returned.
-// index returns the index of the odd in the ladder.
-func OddFloor(odd float64) (index int, oddRounded float64, err error) {
-	_, index, err = FindOdd(odd)
-	if err != nil {
-		return 0, 0, err
-	}
-
-	return index, Odds[index], nil
-}
-
-// OddCeil returns the same odd input rounded towards 1000.
-// If the odd supplied is one of the available odds in the ladder, than the same odd is returned.
-// index returns the index of the odd in the ladder.
-func OddCeil(odd float64) (index int, oddRounded float64, err error) {
-	match, index, err := FindOdd(odd)
-	if err != nil {
-		return 0, 0, err
-	}
-
-	if match {
-		return index, Odds[index], nil
-	}
-	return index + 1, Odds[index+1], nil
-}
-
-// OddRound returns the same odd input rounded to the nearest odd in the ladder.
-// If the odd supplied is one of the available odds in the ladder, than the same odd is returned.
-// index returns the index of the odd in the ladder.
-func OddRound(odd float64) (index int, oddRounded float64, err error) {
-	match, index, err := FindOdd(odd)
-	if err != nil {
-		return 0, 0, err
-	}
-
-	if match {
-		return index, Odds[index], nil
-	}
-
-	// Compute deltas
-	delta1 := math.Abs(odd - Odds[index])
-	delta2 := math.Abs(odd - Odds[index+1])
-
-	if delta1 <= delta2 {
-		return index, Odds[index], nil
-	}
-	return index + 1, Odds[index+1], nil
-}
-
-// OddShift shifts the Odd up or down in the ladder.
-// If shift is higher than zero, it shifts the odd towards 1000, if it's less than zero it shifts the odd towards 1.01.
-// roundType is the round method to be used.
-// shift represents the number of ticks to shift the odd.
-func OddShift(roundType RoundType, odd float64, shift int) (index int, oddOut float64, err error) {
-	switch roundType {
-	case RoundType_Ceil:
-		index, _, err = OddCeil(odd)
-	case RoundType_Round:
-		index, _, err = OddRound(odd)
-	case RoundType_Floor:
-		index, _, err = OddFloor(odd)
-	}
-
-	if err != nil {
-		return 0, 0, err
-	}
-
-	index += shift
-
-	if (index >= OddsCount) || (index < 0) {
-		return 0, 0, fmt.Errorf("odd outside of tradable range")
-	}
-	return index, Odds[index], nil
-}
-
-// OddsTicksDiff computes the number of ticks between two odds.
-// roundType is the round method to be used.
-func OddsTicksDiff(roundType RoundType, odd1 float64, odd2 float64) (ticksDiff int, err error) {
-	var index1 int
-	var index2 int
-	var err1 error
-	var err2 error
-
-	switch roundType {
-	case RoundType_Ceil:
-		index1, _, err1 = OddCeil(odd1)
-		index2, _, err2 = OddCeil(odd2)
-	case RoundType_Round:
-		index1, _, err1 = OddRound(odd1)
-		index2, _, err2 = OddRound(odd2)
-	case RoundType_Floor:
-		index1, _, err1 = OddFloor(odd1)
-		index2, _, err2 = OddFloor(odd2)
-	}
-
-	if err1 != nil {
-		return 0, err1
-	}
-
-	if err2 != nil {
-		return 0, err2
-	}
-
-	return int(math.Abs(float64(index2 - index1))), nil
-}
-
-// IsOddWithinBoundaries checks if odd is within trading range.
-// I.e., odd is between 1.01 and 1000.
-func IsOddWithinBoundaries(odd float64) bool {
-	if internal.EqualWithTolerance(odd, 1000) {
-		return true
-	} else if odd > 1000 {
-		return false
-	}
-
-	if internal.EqualWithTolerance(odd, 1.01) {
-		return true
-	} else if odd < 1.01 {
-		return false
-	}
-
-	return true
-}
-
-// FindOdd tries to find the odd in the ladder.
-// If it finds it, then index is the odd index in the ladder.
-// If it doesn't find it, it will return the index in the ladder that is the closest to the odd on the left side.
-func FindOdd(odd float64) (match bool, index int, err error) {
-	// Boundaries
-	if withinBoundary := IsOddWithinBoundaries(odd); !withinBoundary {
-		return false, 0, fmt.Errorf("odd provided [%f] is outside of trading range", odd)
-	}
-
-	if internal.EqualWithTolerance(odd, 1000) {
-		return true, OddsCount - 1, nil
-	} else if internal.EqualWithTolerance(odd, 1.01) {
-		return true, 0, nil
-	}
-
-	lo := 0
-	hi := OddsCount
-
-	for lo < hi {
-		mid := (lo + hi) / 2
-
-		if internal.EqualWithTolerance(odd, Odds[mid]) {
-			return true, mid, nil
-		} else if odd < Odds[mid] {
-			hi = mid
-		} else {
-			lo = mid + 1
-		}
-	}
-
-	return false, lo - 1, nil
-}
-
-// RoundType is the round method to be used.
-type RoundType uint
-
-const (
-	// RoundType_Ceil round towards 1000.
-	RoundType_Ceil = iota
-	// RoundType_Round round to the nearest odd in the ladder.
-	RoundType_Round
-	// RoundType_Floor round towards 1.01.
-	RoundType_Floor
-)
-
-func (rt RoundType) String() string {
-	return [...]string{"Ceil", "Round", "Floor"}[rt]
+// OddsRange is a slice with all the odd ranges available.
+var OddsRange = []OddRange{
+	{
+		Begin:      Odd{Fixed: 101, Float: 1.01, String: "1.01"},
+		End:        Odd{Fixed: 200, Float: 2.0, String: "2"},
+		Increment:  1, // 0.01
+		TicksCount: 100,
+	},
+	{
+		Begin:      Odd{Fixed: 202, Float: 2.02, String: "2.02"},
+		End:        Odd{Fixed: 300, Float: 3.0, String: "3"},
+		Increment:  2, // 0.02
+		TicksCount: 50,
+	},
+	{
+		Begin:      Odd{Fixed: 305, Float: 3.05, String: "3.05"},
+		End:        Odd{Fixed: 400, Float: 4.0, String: "4"},
+		Increment:  5, // 0.05
+		TicksCount: 20,
+	},
+	{
+		Begin:      Odd{Fixed: 410, Float: 4.10, String: "4.1"},
+		End:        Odd{Fixed: 600, Float: 6.0, String: "6"},
+		Increment:  10, // 0.1
+		TicksCount: 20,
+	},
+	{
+		Begin:      Odd{Fixed: 620, Float: 6.20, String: "6.2"},
+		End:        Odd{Fixed: 1000, Float: 10.0, String: "10"},
+		Increment:  20, // 0.2
+		TicksCount: 20,
+	},
+	{
+		Begin:      Odd{Fixed: 1050, Float: 10.50, String: "10.5"},
+		End:        Odd{Fixed: 2000, Float: 20.0, String: "20"},
+		Increment:  50, // 0.5
+		TicksCount: 20,
+	},
+	{
+		Begin:      Odd{Fixed: 2100, Float: 21.0, String: "21"},
+		End:        Odd{Fixed: 3000, Float: 30.0, String: "30"},
+		Increment:  100, // 1
+		TicksCount: 10,
+	},
+	{
+		Begin:      Odd{Fixed: 3200, Float: 32.0, String: "32"},
+		End:        Odd{Fixed: 5000, Float: 50.0, String: "50"},
+		Increment:  200, // 2
+		TicksCount: 10,
+	},
+	{
+		Begin:      Odd{Fixed: 5500, Float: 55.0, String: "55"},
+		End:        Odd{Fixed: 10000, Float: 100.0, String: "100"},
+		Increment:  500, // 5
+		TicksCount: 10,
+	},
+	{
+		Begin:      Odd{Fixed: 11000, Float: 110.0, String: "110"},
+		End:        Odd{Fixed: 100000, Float: 1000.0, String: "1000"},
+		Increment:  1000, // 10
+		TicksCount: 90,
+	},
 }

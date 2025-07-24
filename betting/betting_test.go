@@ -4,32 +4,40 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/gustavooferreira/bfutils/betting"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/gustavooferreira/bfutils"
+	"github.com/gustavooferreira/bfutils/betting"
 )
 
-const float64EqualityThreshold = 1e-5
-const amountEqualityThreshold = 0.01
+const (
+	float64EqualityThreshold = 1e-5
+	amountEqualityThreshold  = 0.01
+)
 
 func TestCalcFreeBetDecimal(t *testing.T) {
 	tests := map[string]struct {
-		oddBack  float64
-		oddLay   float64
+		oddBack  string
+		oddLay   string
 		expected float64
 	}{
-		"calculate free bet [B:0,L:0]":       {oddBack: 0, oddLay: 0, expected: 0.0},
-		"calculate free bet [B:2,L:2]":       {oddBack: 2, oddLay: 2, expected: 0.0},
-		"calculate free bet [B:20,L:10]":     {oddBack: 20, oddLay: 10, expected: 10},
-		"calculate free bet [B:18,L:7]":      {oddBack: 18, oddLay: 7, expected: 11},
-		"calculate free bet [B:100,L:250]":   {oddBack: 100, oddLay: 250, expected: -150},
-		"calculate free bet [B:50,L:5]":      {oddBack: 50, oddLay: 5, expected: 45},
-		"calculate free bet [B:1.35,L:2.02]": {oddBack: 1.35, oddLay: 2.02, expected: -0.67},
+		"calculate free bet [B:2,L:2]":       {oddBack: "2", oddLay: "2", expected: 0.0},
+		"calculate free bet [B:20,L:10]":     {oddBack: "20", oddLay: "10", expected: 10},
+		"calculate free bet [B:18,L:7]":      {oddBack: "18", oddLay: "7", expected: 11},
+		"calculate free bet [B:100,L:250]":   {oddBack: "100", oddLay: "250", expected: -150},
+		"calculate free bet [B:50,L:5]":      {oddBack: "50", oddLay: "5", expected: 45},
+		"calculate free bet [B:1.35,L:2.02]": {oddBack: "1.35", oddLay: "2.02", expected: -0.67},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			value := betting.FreeBetDecimal(test.oddBack, test.oddLay)
+			oddBack, err := bfutils.OddFromString(test.oddBack)
+			require.NoError(t, err)
+			oddLay, err := bfutils.OddFromString(test.oddLay)
+			require.NoError(t, err)
+
+			value := betting.FreeBetDecimal(oddBack.Fixed, oddLay.Fixed)
 			assert.InDelta(t, test.expected, value, float64EqualityThreshold)
 		})
 	}
@@ -37,23 +45,27 @@ func TestCalcFreeBetDecimal(t *testing.T) {
 
 func TestCalcFreeBetPL(t *testing.T) {
 	tests := map[string]struct {
-		oddBack  float64
-		oddLay   float64
+		oddBack  string
+		oddLay   string
 		stake    float64
 		expected float64
 	}{
-		"calculate free bet [B:0,L:0;S:0]":       {oddBack: 0, oddLay: 0, stake: 0, expected: 0.0},
-		"calculate free bet [B:2,L:2;S:10]":      {oddBack: 2, oddLay: 2, stake: 10, expected: 0.0},
-		"calculate free bet [B:20,L:10;S:4]":     {oddBack: 20, oddLay: 10, stake: 4, expected: 40},
-		"calculate free bet [B:18,L:7;S:0]":      {oddBack: 18, oddLay: 7, stake: 0, expected: 0},
-		"calculate free bet [B:100,L:250;S:2]":   {oddBack: 100, oddLay: 250, stake: 2, expected: -300},
-		"calculate free bet [B:50,L:5;S:5]":      {oddBack: 50, oddLay: 5, stake: 5, expected: 225},
-		"calculate free bet [B:1.35,L:2.02;S:2]": {oddBack: 1.35, oddLay: 2.02, stake: 2, expected: -1.34},
+		"calculate free bet [B:2,L:2;S:10]":      {oddBack: "2", oddLay: "2", stake: 10, expected: 0.0},
+		"calculate free bet [B:20,L:10;S:4]":     {oddBack: "20", oddLay: "10", stake: 4, expected: 40},
+		"calculate free bet [B:18,L:7;S:0]":      {oddBack: "18", oddLay: "7", stake: 0, expected: 0},
+		"calculate free bet [B:100,L:250;S:2]":   {oddBack: "100", oddLay: "250", stake: 2, expected: -300},
+		"calculate free bet [B:50,L:5;S:5]":      {oddBack: "50", oddLay: "5", stake: 5, expected: 225},
+		"calculate free bet [B:1.35,L:2.02;S:2]": {oddBack: "1.35", oddLay: "2.02", stake: 2, expected: -1.34},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			value := betting.FreeBetPL(test.oddBack, test.oddLay, test.stake)
+			oddBack, err := bfutils.OddFromString(test.oddBack)
+			require.NoError(t, err)
+			oddLay, err := bfutils.OddFromString(test.oddLay)
+			require.NoError(t, err)
+
+			value := betting.FreeBetPL(oddBack.Fixed, oddLay.Fixed, test.stake)
 			assert.InDelta(t, test.expected, value, float64EqualityThreshold)
 		})
 	}
@@ -61,64 +73,64 @@ func TestCalcFreeBetPL(t *testing.T) {
 
 func TestCalcGreenBookOpenBackDecimal(t *testing.T) {
 	tests := map[string]struct {
-		oddBack      float64
-		oddLay       float64
+		oddBack      string
+		oddLay       string
 		expectedPerc float64
 		expectedErr  bool
 	}{
-		"calculate green book [B:0,L:0]":       {oddBack: 0, oddLay: 0, expectedErr: true},
-		"calculate green book [B:2,L:2]":       {oddBack: 2, oddLay: 2, expectedPerc: 0.0},
-		"calculate green book [B:20,L:10]":     {oddBack: 20, oddLay: 10, expectedPerc: 1},
-		"calculate green book [B:18,L:7]":      {oddBack: 18, oddLay: 7, expectedPerc: 1.57142},
-		"calculate green book [B:100,L:250]":   {oddBack: 100, oddLay: 250, expectedPerc: -0.6},
-		"calculate green book [B:50,L:5]":      {oddBack: 50, oddLay: 5, expectedPerc: 9},
-		"calculate green book [B:1.35,L:2.02]": {oddBack: 1.35, oddLay: 2.02, expectedPerc: -0.33168},
+		"calculate green book [B:2,L:2]":       {oddBack: "2", oddLay: "2", expectedPerc: 0.0},
+		"calculate green book [B:20,L:10]":     {oddBack: "20", oddLay: "10", expectedPerc: 1},
+		"calculate green book [B:18,L:7]":      {oddBack: "18", oddLay: "7", expectedPerc: 1.57142},
+		"calculate green book [B:100,L:250]":   {oddBack: "100", oddLay: "250", expectedPerc: -0.6},
+		"calculate green book [B:50,L:5]":      {oddBack: "50", oddLay: "5", expectedPerc: 9},
+		"calculate green book [B:1.35,L:2.02]": {oddBack: "1.35", oddLay: "2.02", expectedPerc: -0.33168},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			var errBool bool
-			var errMsg string
-			value, err := betting.GreenBookOpenBackDecimal(test.oddBack, test.oddLay)
-			if err != nil {
-				errBool = true
-				errMsg = fmt.Sprintf(" - err: %s", err.Error())
-			}
-			require.Equal(t, test.expectedErr, errBool, "error field"+errMsg)
+			oddBack, err := bfutils.OddFromString(test.oddBack)
+			require.NoError(t, err)
+			oddLay, err := bfutils.OddFromString(test.oddLay)
+			require.NoError(t, err)
 
-			assert.InDelta(t, test.expectedPerc, value, float64EqualityThreshold)
+			value, err := betting.GreenBookOpenBackDecimal(oddBack.Fixed, oddLay.Fixed)
+
+			if test.expectedErr {
+				require.Error(t, err)
+				require.Error(t, err, "error message: %v", err.Error())
+			} else {
+				require.NoError(t, err)
+				assert.InDelta(t, test.expectedPerc, value, float64EqualityThreshold)
+			}
 		})
 	}
 }
 
 func TestCalcGreenBookOpenBackAmount(t *testing.T) {
 	tests := map[string]struct {
-		oddBack          float64
-		oddLay           float64
+		oddBack          string
+		oddLay           string
 		stake            float64
 		expectedLayStake float64
-		expectedErr      bool
 	}{
-		"calculate green book amount [B:0,L:0;S:0]":       {oddBack: 0, oddLay: 0, stake: 0, expectedErr: true},
-		"calculate green book amount [B:2,L:2;S:10]":      {oddBack: 2, oddLay: 2, stake: 10, expectedLayStake: 10},
-		"calculate green book amount [B:20,L:10;S:4]":     {oddBack: 20, oddLay: 10, stake: 4, expectedLayStake: 8},
-		"calculate green book amount [B:18,L:7;S:0]":      {oddBack: 18, oddLay: 7, stake: 0, expectedLayStake: 0},
-		"calculate green book amount [B:100,L:250;S:2]":   {oddBack: 100, oddLay: 250, stake: 2, expectedLayStake: 0.8},
-		"calculate green book amount [B:50,L:5;S:5]":      {oddBack: 50, oddLay: 5, stake: 5, expectedLayStake: 50},
-		"calculate green book amount [B:1.35,L:2.02;S:2]": {oddBack: 1.35, oddLay: 2.02, stake: 2, expectedLayStake: 1.33663366},
+		"calculate green book amount [B:2,L:2;S:10]":      {oddBack: "2", oddLay: "2", stake: 10, expectedLayStake: 10},
+		"calculate green book amount [B:20,L:10;S:4]":     {oddBack: "20", oddLay: "10", stake: 4, expectedLayStake: 8},
+		"calculate green book amount [B:18,L:7;S:0]":      {oddBack: "18", oddLay: "7", stake: 0, expectedLayStake: 0},
+		"calculate green book amount [B:100,L:250;S:2]":   {oddBack: "100", oddLay: "250", stake: 2, expectedLayStake: 0.8},
+		"calculate green book amount [B:50,L:5;S:5]":      {oddBack: "50", oddLay: "5", stake: 5, expectedLayStake: 50},
+		"calculate green book amount [B:1.35,L:2.02;S:2]": {oddBack: "1.35", oddLay: "2.02", stake: 2, expectedLayStake: 1.33663366},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			var errBool bool
-			var errMsg string
-			value, err := betting.GreenBookOpenBackAmount(test.oddBack, test.stake, test.oddLay)
-			if err != nil {
-				errBool = true
-				errMsg = fmt.Sprintf(" - err: %s", err.Error())
-			}
-			require.Equal(t, test.expectedErr, errBool, "error field"+errMsg)
+			oddBack, err := bfutils.OddFromString(test.oddBack)
+			require.NoError(t, err)
+			oddLay, err := bfutils.OddFromString(test.oddLay)
+			require.NoError(t, err)
 
+			value, err := betting.GreenBookOpenBackAmount(oddBack.Fixed, test.stake, oddLay.Fixed)
+
+			require.NoError(t, err)
 			assert.InDelta(t, test.expectedLayStake, value, float64EqualityThreshold)
 		})
 	}
@@ -126,32 +138,33 @@ func TestCalcGreenBookOpenBackAmount(t *testing.T) {
 
 func TestCalcGreenBookOpenBackAmountByPerc(t *testing.T) {
 	tests := map[string]struct {
-		oddBack          float64
-		perc             float64
-		expectedLayStake float64
-		expectedErr      bool
+		oddBack            string
+		perc               float64
+		expectedLayOdd     string
+		expectedPercReturn float64
 	}{
-		"calculate green book perc 1": {oddBack: 5, perc: -2, expectedErr: true},
-		"calculate green book perc 2": {oddBack: 20, perc: 1, expectedLayStake: 10},
-		"calculate green book perc 3": {oddBack: 18, perc: 0.7, expectedLayStake: 10.5882352},
-		"calculate green book perc 4": {oddBack: 100, perc: 1.5, expectedLayStake: 40},
-		"calculate green book perc 5": {oddBack: 50, perc: 2, expectedLayStake: 16.666666},
-		"calculate green book perc 6": {oddBack: 10, perc: -0.5, expectedLayStake: 20},
-		"calculate green book perc 7": {oddBack: 20, perc: -0.8, expectedLayStake: 100},
+		"calculate green book perc 2": {oddBack: "20", perc: 1, expectedLayOdd: "10", expectedPercReturn: 1},
+		"calculate green book perc 3": {oddBack: "18", perc: 0.7, expectedLayOdd: "10.5", expectedPercReturn: 0.714},
+		"calculate green book perc 4": {oddBack: "100", perc: 1.5, expectedLayOdd: "40", expectedPercReturn: 1.5},
+		"calculate green book perc 5": {oddBack: "50", perc: 2, expectedLayOdd: "16.5", expectedPercReturn: 2.03},
+		"calculate green book perc 6": {oddBack: "10", perc: -0.5, expectedLayOdd: "20", expectedPercReturn: -0.5},
+		"calculate green book perc 7": {oddBack: "20", perc: -0.8, expectedLayOdd: "100", expectedPercReturn: -0.8},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			var errBool bool
-			var errMsg string
-			value, err := betting.GreenBookOpenBackAmountByPerc(test.oddBack, test.perc)
-			if err != nil {
-				errBool = true
-				errMsg = fmt.Sprintf(" - err: %s", err.Error())
-			}
-			require.Equal(t, test.expectedErr, errBool, "error field"+errMsg)
+			oddBack, err := bfutils.OddFromString(test.oddBack)
+			require.NoError(t, err)
 
-			assert.InDelta(t, test.expectedLayStake, value, float64EqualityThreshold)
+			expectedOddLay, err := bfutils.OddFromString(test.expectedLayOdd)
+			require.NoError(t, err)
+
+			resultOddLay, resultPerc, err := betting.GreenBookOpenBackAmountByPerc(oddBack.Fixed, test.perc)
+
+			require.NoError(t, err)
+			assert.Equal(t, expectedOddLay.Fixed, resultOddLay)
+			assert.InDelta(t, test.expectedPercReturn, resultPerc, 1e-3)
+			t.Logf("resultOddLay: %s, resultPerc: %f", resultOddLay.ToOdd().String, resultPerc)
 		})
 	}
 }

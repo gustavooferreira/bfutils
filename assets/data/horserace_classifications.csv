@@ -1,0 +1,35 @@
+Classification,Abbreviation
+"Listed Race",Listed
+"Listed Hurdle","Listed Hrd"
+"Listed Chase","Listed Chs"
+"Group 1/2/3",Grp1/2/3
+"Grade 1/2/3 Hurdle","Grd1/2/3 Hrd"
+"Grade 1/2/3 Chase","Grd1/2/3 Chs"
+"Maiden Stakes","Mdn Stks"
+"Conditions Stakes","Cond Stks"
+"Selling Stakes","Sell Stks"
+"Claiming Stakes","Claim Stks"
+"Rated Stakes",Hcap
+"Classified Stakes","Class Stks"
+"Nursery Handicap",Nursery
+Handicap,Hcap
+Graduation,Grad
+Intermediate,Int
+Apprentice,App
+Introductory,Intro
+Maiden,Mdn
+Stakes,Stks
+Hurdle,Hrd
+Chase,Chs
+"Cross Country Chs","XC Chs"
+Hunters,"Hunt Chs"
+Novice,Nov
+Selling,Sell
+Claiming,Claim
+Classified,Class
+Juvenile,Juv
+Beginners,Beg
+"National Hunt Flat",NHF
+"Irish NH Flat",INHF
+Flat,Flat
+"(Non Of the Above)",Stks

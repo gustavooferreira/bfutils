@@ -9,45 +9,73 @@ import (
 	"github.com/gustavooferreira/bfutils/internal"
 )
 
-// FreeBetDecimal returns the P&L multiplier factor.
-// Example: back:4 lay:2 the multiplier factor is 2, which means if you back at odd 4 with £10
-// and lay at odd 2 with £10 you secure a free bet of 2 * £10 = £20
-func FreeBetDecimal(oddBack float64, oddLay float64) float64 {
-	return oddBack - oddLay
+// FreeBetDecimal returns the P&L multiplier factor (percentage * 100).
+// Example: back:4 lay:2 the multiplier factor is 2, which means if you back at odd 4 with £10 and lay at odd 2 with £10
+// you secure a free bet of 2 * £10 = £20
+func FreeBetDecimal(oddBack bfutils.FixedOdd, oddLay bfutils.FixedOdd) float64 {
+	oddBackFloat := bfutils.ConvertFixedToFloatOdd(oddBack)
+	oddLayFloat := bfutils.ConvertFixedToFloatOdd(oddLay)
+
+	return oddBackFloat - oddLayFloat
 }
 
 // FreeBetPL returns the profit in case selection wins.
-// Note that 'stake' is the backer's stake not the layer's liability
-func FreeBetPL(oddBack float64, oddLay float64, stake float64) float64 {
+// Note that 'stake' is the backer's stake not the layer's liability.
+func FreeBetPL(oddBack bfutils.FixedOdd, oddLay bfutils.FixedOdd, stake float64) float64 {
 	return FreeBetDecimal(oddBack, oddLay) * stake
 }
 
 // GreenBookOpenBackDecimal returns percentage of P&L.
-func GreenBookOpenBackDecimal(oddBack float64, oddLay float64) (float64, error) {
-	if oddLay < 1.01 {
+func GreenBookOpenBackDecimal(oddBack bfutils.FixedOdd, oddLay bfutils.FixedOdd) (float64, error) {
+	if oddLay < 101 {
 		return 0, fmt.Errorf("oddLay cannot be outside of trading range")
 	}
-	return oddBack/oddLay - 1, nil
+
+	oddBackFloat := bfutils.ConvertFixedToFloatOdd(oddBack)
+	oddLayFloat := bfutils.ConvertFixedToFloatOdd(oddLay)
+
+	return oddBackFloat/oddLayFloat - 1, nil
 }
 
 // GreenBookOpenBackAmount returns lay stake to greenbook.
-func GreenBookOpenBackAmount(oddBack float64, stakeBack float64, oddLay float64) (float64, error) {
-	if oddLay < 1.01 {
+func GreenBookOpenBackAmount(oddBack bfutils.FixedOdd, stakeBack float64, oddLay bfutils.FixedOdd) (float64, error) {
+	if oddLay < 101 {
 		return 0, fmt.Errorf("oddLay cannot be outside of trading range")
 	}
-	return (stakeBack * oddBack) / oddLay, nil
+
+	oddBackFloat := bfutils.ConvertFixedToFloatOdd(oddBack)
+	oddLayFloat := bfutils.ConvertFixedToFloatOdd(oddLay)
+
+	return (oddBackFloat / oddLayFloat) * stakeBack, nil
 }
 
 // GreenBookOpenBackAmountByPerc returns oddLay for a given perc P&L.
-// Note that when Backing, you cannot lose more than 100% of your stake
-// therefore feeding perc with a number less or equal to -1 is an error!
-// perc is a representation in decimal, meaning if you want to know at what LAY odd you should
-// place a bet at in order to get 100% profit, then perc is == 1
-func GreenBookOpenBackAmountByPerc(oddBack float64, perc float64) (float64, error) {
+// Note that when Backing, you cannot lose more than 100% of your stake, therefore feeding perc with a number less or
+// equal to -1 is an error!
+// perc is a representation in decimal, meaning if you want to know at what LAY odd you should place a bet at in order
+// to get 100% profit, then perc is == 1
+// Given that odds increments in steps, when returning the oddLay, we also return the exact percentage return on that
+// odd, as it may not align exactly with the requested percentage.
+func GreenBookOpenBackAmountByPerc(oddBack bfutils.FixedOdd, perc float64) (bfutils.FixedOdd, float64, error) {
 	if perc <= -1 {
-		return 0, fmt.Errorf("cannot lose more than 100%% of stake when backing")
+		return 0, 0, fmt.Errorf("cannot lose more than 100%% of stake when backing")
 	}
-	return oddBack / (perc + 1), nil
+
+	oddBackFloat := bfutils.ConvertFixedToFloatOdd(oddBack)
+	result := oddBackFloat / (perc + 1)
+
+	// find closest odd
+	_, oddLay, err := bfutils.OddRound(result)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	percReturn, err := GreenBookOpenBackDecimal(oddBack, oddLay)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return oddLay, percReturn, nil
 }
 
 // GreenBookOpenLayDecimal returns percentage of P&L.

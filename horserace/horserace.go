@@ -2,12 +2,16 @@
 // with the horse racing markets.
 package horserace
 
+//go:generate go run ../scripts/gen_horserace_classification.go
+//go:generate go run ../scripts/gen_horserace_tracks.go
+
 import (
 	"fmt"
 	"strings"
 )
 
-// GetClassAndDistance returns the classification of the race and the distance, given the name of the race (as returned by the betfair API).
+// GetClassAndDistance returns the classification of the race and the distance, given the name of the race (as returned
+// by the betfair API).
 func GetClassAndDistance(marketName string) (name string, distance string) {
 	words := strings.Fields(marketName)
 	if len(words) < 2 {
